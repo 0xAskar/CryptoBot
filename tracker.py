@@ -49,9 +49,9 @@ async def on_message(message):
         await message.channel.send(response)
     elif info == "!bitcoin" or info == '!btc':
         price = m.data[0]['quote']['USD']['price']
+        price = round(price,2)
         percent_change = m.data[0]['quote']['USD']['percent_change_24h']
         percent_change = round(percent_change, 2)
-        price = round(price,2)
         response = "Bitcoin's price: $" + str(price) + ", Percent Change: " + str(percent_change) + "%"
         await message.channel.send(response)
     elif info == "!ethereum" or info == '!eth':
