@@ -1,10 +1,10 @@
 client_secret = "arlLaG80mW6GgG7cpQ7re_0zfbuZIqfI"
 client_id = 769265839584051200
 public_key = "50d8dbb3ff26eec310978d56a17705489eeee4882f65d7034019598998bc8ea6"
-bot_token = 'NzY5MjY1ODM5NTg0MDUxMjAw.X5MgpA.NJQe7HIVJcdHyXuVH9S8NvUyWSM'
+bot_token = 'NzY5MjY1ODM5NTg0MDUxMjAw.X5MgpA.T4FuSmZrpsAzSQeMrbgx5LGqQVI'
+'
 guild_s = "Playground"
 # guild_penny = "Pennystocks"
-
 
 cmc_key =  "98fa7239-19fd-4581-93e2-1bd68b544351"
 
@@ -21,6 +21,7 @@ from coinmarketcapapi import CoinMarketCapAPI, CoinMarketCapAPIError
 from discord.ext import commands
 
 cmc = CoinMarketCapAPI(cmc_key)
+cg = CoinGeckoAPI()
 ticker = "NONE"
 load_dotenv()
 bot = commands.Bot(command_prefix='!')
