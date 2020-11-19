@@ -1,0 +1,35 @@
+{
+  "name": "cryptobot",
+  "version": "1.0.0",
+  "description": "crypto bot for pennycord",
+  "main": "index.js",
+  "dependencies": {
+    "coingecko-api": "^1.0.10",
+    "asyncio": "^0.0.2",
+    "discord": "^0.8.2",
+    "install": "^0.13.0",
+    "os": "^0.1.1",
+    "npm": "^6.14.8"
+  },
+  "devDependencies": {},
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mattaska/CryptoBot.git"
+  },
+  "keywords": [
+    "crypto",
+    "bitcoin",
+    "bot",
+    "discord"
+  ],
+  "author": "askar",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mattaska/CryptoBot/issues"
+  },
+  "homepage": "https://github.com/mattaska/CryptoBot#readme"
+}
