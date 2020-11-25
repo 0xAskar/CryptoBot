@@ -1,4 +1,4 @@
-import ids
+import bot_ids
 import os
 import discord
 import random
@@ -17,18 +17,28 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import matplotlib.dates as mdates
 import mplfinance as mpf
+import etherscan
 
-public_key = "50d8dbb3ff26eec310978d56a17705489eeee4882f65d7034019598998bc8ea6"
-bot_token = ids.bot_token_real
+# important strings
+bot_token = bot_ids.bot_token_real
 guild_s = "Playground"
 guild_p = "/r/Pennystocks"
+bot_name = ""
+bot_member = None
+bot_id = bot_ids.bot_id_real
+askar_member = None
+askar_name = ""
+askar_id = 372010870756081675
+# main functions - transition to a main file
+es = etherscan.Client(
+    api_key='Y9KQMISGCXVNMJJXA2TBFMENF1JM2D4HAP',
+    cache_expire_after=5,
+)
 load_dotenv()
 cg = CoinGeckoAPI()
 print(cg.ping())
-bot = commands.Bot(command_prefix='!')
-bot_name = ""
-bot_member = None
-bot_id = ids.bot_id_real
+intents = discord.Intents.all()
+bot = commands.Bot(command_prefix='!', intents = intents)
 
 def btc_status():
     price_data = cg.get_price(ids= 'bitcoin', vs_currencies='usd')
@@ -58,16 +68,18 @@ def get_coin_price(coin_name):
         market_cap = price_data[coin_label]['usd_market_cap']
         market_cap = round(market_cap, 2)
         market_cap = check_large(market_cap)
+        mc = market_cap
         # market_cap = "{:,}".format(market_cap)
         coin_name = change_cap(coin_name)
-        embedResponse = discord.Embed(title=coin_name + " Info", color=0xFF8C00)
-        embedResponse.add_field(name="Price", value= "$" + str(price), inline=False)
-        embedResponse.add_field(name="Percent Change (24hr)", value= str(percent_change) + "%", inline=False)
-        embedResponse.add_field(name="Market Cap", value= "$" + market_cap, inline=False)
+        # embedResponse = discord.Embed(title=coin_name + " Info", color=0xFF8C00)
+        embedResponse = discord.Embed(color=0xFF8C00)
+        embedResponse.add_field(name= coin_name + " Price", value= "$" + str(price), inline=False)
+        embedResponse.add_field(name= coin_name + " Percent Change (24hr)", value= str(percent_change) + "%", inline=False)
+        embedResponse.add_field(name= coin_name + " Market Cap", value= mc, inline=False)
         response1 = "```" + coin_name + "'s price: $" + str(price) + "\n" + "Percent Change (24h): " + str(percent_change) + "%" + "\n" + "Market Cap: $" + str(market_cap) + "```"
         # response2 = "```" + coin_name + "'s price: $" + str(price) + ", " + "Percent Change (24h): " + str(percent_change) + "%" + "\n" + "Market Cap: $" + str(market_cap) + "```"
         return embedResponse
-    return error()
+    return ""
 
 def get_coin_chart(coin_name, num_days):
     coin_label = ""
@@ -113,8 +125,8 @@ def get_coin_chart(coin_name, num_days):
         coin_label = change_cap(coin_label)
         title1 = coin_label + " " + changed + percent_change + "% - " + days
         plt.title(title1)
-        plt.xlabel('Days')
         plt.ylabel('Price - USD')
+        plt.grid(mfc = "gray")
         plt.savefig('chart.png', edgecolor = 'black')
         return True
     else:
@@ -155,7 +167,14 @@ def get_candle_chart(coin_name, num_days):
             count += 1
         # create the date and dataframe
         period = len(open)
-        dti = pd.date_range(time_conv, periods=period, freq='4H')
+        frequency = ""
+        if num_days == "1":
+            frequency = "30min"
+        elif num_days == "7" or num_days == "14" or num_days == "30":
+            frequency = "4H"
+        else:
+            frequency = "4D"
+        dti = pd.date_range(time_conv, periods=period, freq=frequency)
         ohlc = {"opens":open, "highs":high, "lows":low, "closes":close, "volumes":volume}
         ohlc = pd.DataFrame(data = ohlc, index = dti)
         ohlc.columns = ['Open', 'High', 'Low', 'Close', 'Volume'] #these two lines solved the dataframe problem
@@ -221,16 +240,20 @@ def change_cap(coin_name):
     return coin_label
 
 def check_large(num): #there are better ways but atm, its not important
-    letter = " M"
-    num /= 1000000
+    letter = ""
+    if num == 0:
+        return "Not Found"
+    if num >= 1000000:
+        letter = " M"
+        num /= 1000000
     if (num >= 1000):
         letter = " B"
         num /= 1000
         if (num >= 1000):
             letter = " T"
             num /= 1000
-    num = round(num, 1)
-    return str(num) + letter
+    num = round(num, 2)
+    return "$" + str(num) + letter
 
 def get_events():
     news = cg.get_events(country_code = 'US', type = "Eventf", page = 10, upcoming_events_only = False, from_date = "2019-01-01", to_date = "2020-10-02")
@@ -270,13 +293,39 @@ def get_global_defi_data():
     response += "Top Defi Coin: " + tdc + "\n" + "Top Defi Coin Dominance: " + str(tdcmc) + "%"+ "\n```"
     return response
 
+def gas():
+    wei = es.get_gas_price()
+    gwei = wei / 1000000000
+    gwei = round(gwei, 2)
+    avg_gas = 21000
+    price_data = cg.get_price(ids= "ethereum", vs_currencies='usd')
+    eth_price = price_data["ethereum"]['usd']
+    eth_price = round(eth_price,3)
+    usd_amount = (avg_gas * gwei / 1000000000) * eth_price
+    usd_amount = round(usd_amount, 2)
+    embedResponse = discord.Embed(title="Gas Price", color=0x0000ff)
+    embedResponse.add_field(name="Gwei Price", value = str(gwei), inline=False)
+    embedResponse.add_field(name="USD Price (avg trxn)", value= "$" + str(usd_amount), inline=False)
+    return embedResponse
+
 def future():
     response = "BAND is a shitcoin [I'm not changing this Shi]"
     return response
 
 def error():
-    response = "Not valid command/coin"
+    response = "Not a valid command/coin"
     return response
+
+def find_member(mem_id):
+    found_mem = None
+    for guild in bot.guilds:
+        if guild.name == guild_p:
+            break
+    members = '\n - '.join([member.name for member in guild.members])
+    ids = [member.id for member in guild.members]
+    for member in guild.members:
+        if member.id == mem_id:
+            return member
 
 @bot.event
 async def background_task():
@@ -284,14 +333,19 @@ async def background_task():
     for guild in bot.guilds:
         if guild.name == guild_p:
             break
+    # intents = discord.intents.all()
+    # client = discord.Client(intent = intents)
     for member in guild.members:
         if member.id == bot_id:
             bot_member = member
             bot_name = member.name
+        if member.id == askar_id:
+            askar_member = member
+            askar_name = member.name
     while not bot.is_closed():
         await bot_member.edit(nick = btc_status())
         await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= eth_status()))
-        await asyncio.sleep(5)
+        await asyncio.sleep(10)
 
 
 @bot.event
@@ -305,6 +359,9 @@ async def on_ready():
         if member.id == bot_id:
             bot_member = member
             bot_name = member.name
+        if member.id == askar_id:
+            askar_member = member
+            askar_name = member.name
     print(f'{bot_name} has connected to Discord!')
 
 @bot.event
@@ -331,21 +388,23 @@ async def on_message(message):
             "" + "\n" + \
             "Credits to CoinGecko® for the free API!```"
             await message.channel.send(response)
+        elif str_divide[0] == "suggestion":
+            if len(str_divide) > 1:
+                user = find_member(askar_id)
+                suggester = find_member(message.author.id)
+                await user.send("suggestion" + " by " + suggester.name + ": " + command[11:])
+                await message.channel.send("```Your suggestion was sent```")
+            else:
+                await message.channel.send("```Invalid Suggestion: There was no suggestion```")
         elif chart_check == "chart":
             if len(str_divide) == 3:
                 if get_coin_chart(str_divide[1], str_divide[2]):
-                    embedImage = discord.Embed(color=0xFF8C00) #creates embed
-                    embedImage.set_image(url="attachment://chart.png")
-                    await message.channel.send(file = discord.File("chart.png"), embed = embedImage)
-                    # await message.channel.send(file = discord.File('chart.png'))
+                    await message.channel.send(file = discord.File('chart.png'))
                 else:
                     await message.channel.send(error())
             elif len(str_divide) == 2:
                 if get_coin_chart(str_divide[1], 30):
-                    embedImage = discord.Embed(color=0xFF8C00) #creates embed
-                    embedImage.set_image(url="attachment://chart.png")
-                    await message.channel.send(file = discord.File("chart.png"), embed = embedImage)
-                    # await message.channel.send(file = discord.File('chart.png'))
+                    await message.channel.send(file = discord.File('chart.png'))
                 else:
                     await message.channel.send(error())
             else:
@@ -358,7 +417,6 @@ async def on_message(message):
                     embedImage = discord.Embed(color=0xFF8C00) #creates embed
                     embedImage.set_image(url="attachment://candle.png")
                     await message.channel.send(file = discord.File("candle.png"), embed = embedImage)
-                    # await message.channel.send(file = discord.File('candle.png'))
                 elif candle_output == "error":
                     await message.channel.send(error())
                 else:
@@ -366,10 +424,7 @@ async def on_message(message):
             elif len(str_divide) == 2:
                 candle_output = get_candle_chart(str_divide[1], 30)
                 if candle_output == "":
-                    embedImage = discord.Embed(color=0xFF8C00) #creates embed
-                    embedImage.set_image(url="attachment://candle.png")
-                    await message.channel.send(file = discord.File("candle.png"), embed = embedImage)
-                    # await message.channel.send(file = discord.File('candle.png'))
+                    await message.channel.send(file = discord.File('candle.png'))
                 elif candle_output == "error":
                     await message.channel.send(error())
                 else:
@@ -385,6 +440,8 @@ async def on_message(message):
                 await message.channel.send(get_events())
             # elif command == 'global':
             #     get_global_data()
+            elif command == "gas":
+                await message.channel.send(embed = gas())
             elif command == 'future':
                 await message.channel.send(future())
             elif command == 'global_defi':
@@ -392,7 +449,11 @@ async def on_message(message):
             elif command == 'list-exchanges':
                 await message.channel.send(get_list_exchanges())
             else:
-                await message.channel.send(embed = get_coin_price(command))
+                result = get_coin_price(command)
+                if result == "":
+                    await message.channel.send(error())
+                else:
+                    await message.channel.send(embed = get_coin_price(command))
         else:
                 await message.channel.send(error())
 
