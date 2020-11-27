@@ -1,5 +1,5 @@
-import os
-import random
+import math
+from math import log10, floor
 import requests
 import pandas as pd
 import discord
@@ -60,18 +60,19 @@ class discord_bot:
             embedResponse = discord.Embed(color=0xFF8C00)
             embedResponse.add_field(name= coin_name + " Price", value= "$" + str(price), inline=False)
             embedResponse.add_field(name= coin_name + " Percent Change (24hr)", value= str(percent_change) + "%", inline=False)
-            embedResponse.add_field(name= coin_name + " Market Cap", value= mc, inline=False)
+            embedResponse.add_field(name= coin_name + " Market Cap", value= "$" + mc, inline=False)
             response1 = "```" + coin_name + "'s price: $" + str(price) + "\n" + "Percent Change (24h): " + str(percent_change) + "%" + "\n" + "Market Cap: $" + str(market_cap) + "```"
             # response2 = "```" + coin_name + "'s price: $" + str(price) + ", " + "Percent Change (24h): " + str(percent_change) + "%" + "\n" + "Market Cap: $" + str(market_cap) + "```"
             return embedResponse
         return ""
 
-    # retreive data and create line chart of any coin
-    def get_coin_chart(self, coin_name, num_days):
+    # retreive data and create candle chart of any coin
+    def get_line_chart(self, coin_name, num_days):
+        #coin label work
         coin_label = ""
         coin_name = coin_name.lower()
         coin_label = self.check_coin(coin_name)
-
+        #checking if num days is valid
         temp = str(num_days)
         if not temp.isdigit():
             temp = temp.lower()
@@ -83,19 +84,38 @@ class discord_bot:
             plt.clf()
             x_vals = []
             y_vals = []
+            count = 0
+            open, close, high, low, volume = [], [], [], [], []
             for point in charts['prices']:
-                time_conv = datetime.utcfromtimestamp(point[0] / 1000).strftime('%Y-%m-%d %H:%M:%S')
+                if count == 0:
+                    time_conv = datetime.utcfromtimestamp(point[0] / 1000).strftime('%Y-%m-%d')
                 x_vals.append(time_conv)
                 y_vals.append(point[1])
-            ax = plt.axes()
-            plt.plot(x_vals, y_vals)
-            # pyplot.locator_params(nbins=4)
-            ax.xaxis.set_major_locator(plt.MaxNLocator(3))
-            # ax.set_xticklabels([label.replace(" ", "\n") for label in x_vals])
-            #create strings for title
-            percent_change = ((y_vals[len(y_vals) - 1] - y_vals[0]) / y_vals[0]) * 100
+                volume.append(1)
+                count += 1
+            # create the date and dataframe
+            open = y_vals
+            close = y_vals
+            high = y_vals
+            low = y_vals
+            period = len(open)
+            frequency = ""
+            if num_days == "1":
+                frequency = "5min"
+            elif num_days != "max" and (int(num_days) <= 90 and int(num_days) > 1):
+                frequency = "1H"
+            else:
+                frequency = "4D"
+            dti = pd.date_range(time_conv, periods=period, freq=frequency)
+            ohlc = {"opens":open, "highs":high, "lows":low, "closes":close, "volumes":volume}
+            ohlc = pd.DataFrame(data = ohlc, index = dti)
+            ohlc.columns = ['Open', 'High', 'Low', 'Close', 'Volume'] #these two lines solved the dataframe problem
+            ohlc.index.name = "Date"
+            # plot and make it look good
+            percent_change = ((close[len(close) - 1] - close[0]) / close[0]) * 100
             percent_change = round(percent_change, 2)
             changed, days = "", ""
+            # change title based on days
             if num_days == "1":
                 days = "the past 24 hours"
             elif num_days == "MAX" or num_days == "max":
@@ -107,16 +127,22 @@ class discord_bot:
                 changed = "+"
             else:
                 changed = ""
+
             percent_change = "{:,}".format(percent_change) # had to do it here because this converts it to a string, need it as a int above
+            # title = "\n" + "\n" + coin_label + "'s price " + changed + percent_change + "% within " + days
             coin_label = self.change_cap(coin_label)
-            title1 = coin_label + " " + changed + percent_change + "% - " + days
-            plt.title(title1)
-            plt.ylabel('Price - USD')
-            plt.grid(mfc = "gray")
-            plt.savefig('chart.png', edgecolor = 'black')
-            return True
+            title1 = "\n" + "\n" + coin_label + " " + changed + percent_change + "% - " + days
+            mc = mpf.make_marketcolors(
+                                up='tab:blue',down='tab:red',
+                                wick={'up':'blue','down':'red'},
+                                volume='tab:green',
+                               )
+
+            edited_style  = mpf.make_mpf_style(gridstyle = '-', facecolor = "lightgray", gridcolor = "white", edgecolor = "black", base_mpl_style = "classic", marketcolors=mc)
+            mpf.plot(ohlc, type='line', title = title1, figratio = (16,10), ylabel = 'Price - USD', style = edited_style, savefig = "chart.png")
+            return ""
         else:
-            return False
+            return "error"
 
     # retreive data and create candle chart of any coin
     def get_candle_chart(self, coin_name, num_days):
@@ -199,7 +225,47 @@ class discord_bot:
         else:
             return "error"
 
+    def get_conversion(self, num, first, second):
+        first_coin = ""
+        second_coin = ""
+        first_coin = self.check_coin(first)
+        second_coin = self.check_coin(second)
+        # check if the coin names are valid
+        if first_coin == "" or second_coin == "":
+            return "e"
+        # retreive price data about the coins
+        first_data = self.cg.get_price(ids= first_coin, vs_currencies='usd')
+        first_price = first_data[first_coin]['usd']
+        second_data = self.cg.get_price(ids= second_coin, vs_currencies='usd')
+        second_price = second_data[second_coin]['usd']
+        # convert to proper cap.
+        first = self.change_cap(first)
+        second = self.change_cap(second)
+        conv_num = float(num) * (first_price / second_price)
+        conversion = self.round_num(conv_num)
+        conversion = self.check_large(conversion)
+        num = self.check_large(int(num))
+        embedResponse = discord.Embed(color=0x7A2F8F)
+        embedResponse.add_field(name= first + " to " + second + " Conversion", value= str(num) + " " + first + " = " + str(conversion) + " " + second, inline=False)
+        return embedResponse
+
     # functions to check coins, names, and size
+
+    # round numbers correctly, sig figs for <1, rounding for >1
+    def round_num(self, num):
+        if num < 1:
+            num = round(num, -int(floor(log10(abs(num)))))
+            temp = num
+            count = 0
+            while temp < 1:
+                temp *= 10
+                count += 1
+            format_string = "{:." + str(count) + "f}"
+            num = format_string.format(float(str(num)))
+            return num
+        else:
+            return round(num, 2)
+
     def check_coin(self, coin_name):
         coin_label = ""
         coin_name = coin_name.lower()
@@ -240,7 +306,9 @@ class discord_bot:
                     letter = " T"
                     num /= 1000
         num = round(num, 2)
-        return "$" + str(num) + letter
+        if letter == "":
+            num = "{:,}".format(num)
+        return str(num) + letter
 
     def get_events(self):
         news = self.cg.get_events(country_code = 'US', type = "Eventf", page = 10, upcoming_events_only = False, from_date = "2019-01-01", to_date = "2020-10-02")

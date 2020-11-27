@@ -1,4 +1,5 @@
 import bot_ids
+import os
 import bot_class_tester
 from bot_class_tester import discord_bot
 from dotenv import load_dotenv
@@ -7,6 +8,8 @@ import discord
 from discord.ext import tasks, commands
 from discord.ext.tasks import loop
 from discord.ext import commands
+
+load_dotenv()
 
 # global variables
 bot_token = bot_ids.bot_token_tester
@@ -89,20 +92,21 @@ if __name__ == "__main__":
                 "Commands:" + "\n" + "\n" + \
                 "   Price Command: ![coin symbol/name], '!btc' or '!bitcoin' - retreive price information about a coin" + "\n" + "\n" + \
                 "   Chart Command: '!chart btc 5' <chart> <coin> <num days> - retreive the line chart of a coin" + "\n" + "\n" + \
-                "   Candle Command: '!chart btc 5' <chart> <coin_name/symbol> <num days>, "\
+                "   Candle Command: '!candle btc 5' <chart> <coin_name/symbol> <num days>, "\
                 "days has to be one of these:" + "\n" + "   '1','7','14','30','90','180','365','MAX' - retreive the candle chart of a coin" + "\n" + "\n" + \
                 "   Suggestion Command: !suggestion do this' <suggestion> <message> - send a suggestion for the bot" + "\n" + "\n" + \
                 "   Gas Command: '!gas' - get information about gwei prices" + "\n" + "\n" + \
+                "   Convert Command: '!convert <coin1> <coin2>' - get conversion rate of coin1 in number of coin2" + "\n" + "\n" + \
                 "   Global Defi Stats: '!global_defi' - get global information about defi" + "\n" + "\n" + \
                 "Credits to CoinGecko® for the free API!```"
-                suggester = db.find_member(bot, guild_p, message.author.id)
+                suggester = db.find_member(bot, guild_s, message.author.id)
                 await suggester.send(response)
                 await message.add_reaction('\N{THUMBS UP SIGN}')
             # if user wants to send a suggestion
             elif str_divide[0] == "suggestion":
                 if len(str_divide) > 1:
-                    user = db.find_member(bot, guild_p, askar_id)
-                    suggester = db.find_member(bot, guild_p, message.author.id)
+                    user = db.find_member(bot, guild_s, askar_id)
+                    suggester = db.find_member(bot, guild_s, message.author.id)
                     await user.send("suggestion" + " by " + suggester.name + ": " + command[11:])
                     await message.channel.send("```Your suggestion was sent```")
                 else:
@@ -110,7 +114,8 @@ if __name__ == "__main__":
             # if user requests a line chart of a coin
             elif str_divide[0] == "chart":
                 if len(str_divide) == 3:
-                    if db.get_coin_chart(str_divide[1], str_divide[2]):
+                    line_output = db.get_line_chart(str_divide[1], str_divide[2])
+                    if line_output == "":
                         await message.channel.send(file = discord.File('chart.png'))
                     else:
                         await message.channel.send(db.error())
@@ -125,7 +130,7 @@ if __name__ == "__main__":
                     return
             # if user requests candle chart of a coin
             elif str_divide[0] == "candle":
-                if len(str_divide) == 3:
+                if len(str_divide) == 3 and str(str_divide[2]).isdigit():
                     candle_output = db.get_candle_chart(str_divide[1], str_divide[2])
                     if candle_output == "":
                         embedImage = discord.Embed(color=0xFF8C00) #creates embed
@@ -144,6 +149,22 @@ if __name__ == "__main__":
                         await message.channel.send(db.error())
                     else:
                         await message.channel.send(candle_output)
+                else:
+                    await message.channel.send(db.error())
+            # if user wants to check conversion rates
+            elif str_divide[0] == "convert":
+                if len(str_divide) == 4 and str(str_divide[1]).isdigit():
+                    convert_output = db.get_conversion(str_divide[1], str_divide[2], str_divide[3])
+                    if convert_output != "e":
+                        await message.channel.send(embed = convert_output)
+                    else:
+                        await message.channel.send(db.error())
+                elif len(str_divide) == 3:
+                    convert_output = db.get_conversion(1, str_divide[1], str_divide[2])
+                    if convert_output != "e":
+                        await message.channel.send(embed = convert_output)
+                    else:
+                        await message.channel.send(db.error())
                 else:
                     await message.channel.send(db.error())
             # if user's request has more than one string, send error
