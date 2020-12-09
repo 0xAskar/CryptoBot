@@ -4,4 +4,4 @@ This includes live updates for cryptocurrencies (max. 5 minute lag. info include
 Other functions are line and candle charts, price conversions, and more.
 To learn more about the bot once it's added, use !crypto-help.
 Email mattaska@umich.edu for use.
-Thanks for checking it out and thanks for CoinGecko for the free API!
+Thanks for checking it out and thanks to CoinGecko for the free API!
