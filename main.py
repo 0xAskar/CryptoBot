@@ -87,18 +87,7 @@ if __name__ == "__main__":
             str_divide = command.split()
             # if user asks for help on commands
             if command == "crypto-help":
-                response = "```CryptoBot gives you sends live updates of " + \
-                "any cryptocurrency!" + "\n" + "\n" + \
-                "Commands:" + "\n" + "\n" + \
-                "   Price Command: ![coin symbol/name], '!btc' or '!bitcoin' - retreive price information about a coin" + "\n" + "\n" + \
-                "   Chart Command: '!chart btc 5' <chart> <coin> <num days> - retreive the line chart of a coin" + "\n" + "\n" + \
-                "   Candle Command: '!candle btc 5' <chart> <coin_name/symbol> <num days>, "\
-                "days has to be one of these:" + "\n" + "   '1','7','14','30','90','180','365','MAX' - retreive the candle chart of a coin" + "\n" + "\n" + \
-                "   Suggestion Command: !suggestion do this' <suggestion> <message> - send a suggestion for the bot" + "\n" + "\n" + \
-                "   Gas Command: '!gas' - get information about gwei prices" + "\n" + "\n" + \
-                "   Convert Command: '!convert <num> <coin1> <coin2>' - get conversion rate of num of coin1 in number of coin2" + "\n" + "\n" + \
-                "   Global Defi Stats: '!global_defi' - get global information about defi" + "\n" + "\n" + \
-                "Credits to CoinGecko® for the free API!```"
+                response = db.help
                 suggester = db.find_member(bot, guild_p, message.author.id)
                 await suggester.send(response)
                 await message.add_reaction('\N{THUMBS UP SIGN}')

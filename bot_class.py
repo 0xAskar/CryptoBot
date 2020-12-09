@@ -24,6 +24,22 @@ class discord_bot:
         cache_expire_after=5,
     )
 
+    help =  "```CryptoBot gives you sends live updates of " + \
+    "any cryptocurrency!" + "\n" + "\n" + \
+    "Commands:" + "\n" + "\n" + \
+    "   Price Command: ![coin symbol/name], '!btc' or '!bitcoin' - retreive price information about a coin" + "\n" + "\n" + \
+    "   Chart Command: '!chart btc 5' <chart> <coin> <num days> - retreive the line chart of a coin, only support USD as of now (ex: !chart link 30)" + "\n" + "\n" + \
+    "   Chart Command: '!chart btc 5' <chart> <coin1> <coin2> <num days> - retreive the line chart of two coins coupled (ex: !chart link btc 30)" + "\n" + "\n" + \
+    "   Candle Command: '!candle btc 5' <chart> <coin_name/symbol> <num days>, "\
+    "days has to be one of these:" + "\n" + "   '1','7','14','30','90','180','365','MAX' - retreive the candle chart of a coin" + "\n" + "\n" + \
+    "   Suggestion Command: !suggestion do this' <suggestion> <message> - send a suggestion for the bot" + "\n" + "\n" + \
+    "   Gas Command: '!gas' - get information about gwei prices" + "\n" + "\n" + \
+    "   Convert Command: '!convert <num> <coin1> <coin2>' - get conversion rate of num of coin1 in number of coin2 (ex: !convert 1000 usdc btc)" + "\n" + "\n" + \
+    "   Global Defi Stats: '!global_defi' - get global information about defi" + "\n" + "\n" + \
+    "Credits to CoinGecko® for the free API!```"
+
+
+
     # functions to gather btc, eth, and any coins price
     def btc_status(self):
         price_data = self.cg.get_price(ids= 'bitcoin', vs_currencies='usd')
