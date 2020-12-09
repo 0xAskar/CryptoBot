@@ -108,12 +108,20 @@ if __name__ == "__main__":
                     user = db.find_member(bot, guild_p, askar_id)
                     suggester = db.find_member(bot, guild_p, message.author.id)
                     await user.send("suggestion" + " by " + suggester.name + ": " + command[11:])
-                    await message.channel.send("```Your suggestion was sent```")
+                    suggester = db.find_member(bot, guild_s, message.author.id)
+                    await suggester.send("```Your suggestion was sent```")
+                    await message.add_reaction('\N{THUMBS UP SIGN}')
                 else:
                     await message.channel.send("```Invalid Suggestion: There was no suggestion```")
             # if user requests a line chart of a coin
             elif str_divide[0] == "chart":
-                if len(str_divide) == 3:
+                if len(str_divide) == 4:
+                    line_output = db.get_line_chart_two(str_divide[1], str_divide[2],str_divide[3])
+                    if line_output == "":
+                        await message.channel.send(file = discord.File('chart.png'))
+                    else:
+                        await message.channel.send(db.error())
+                elif len(str_divide) == 3:
                     line_output = db.get_line_chart(str_divide[1], str_divide[2])
                     if line_output == "":
                         await message.channel.send(file = discord.File('chart.png'))
@@ -133,7 +141,7 @@ if __name__ == "__main__":
                 if len(str_divide) == 3 and str(str_divide[2]).isdigit():
                     candle_output = db.get_candle_chart(str_divide[1], str_divide[2])
                     if candle_output == "":
-                        embedImage = discord.Embed(color=0xFF8C00) #creates embed
+                        embedImage = discord.Embed(color=0x4E6F7B) #creates embed
                         embedImage.set_image(url="attachment://candle.png")
                         await message.channel.send(file = discord.File("candle.png"), embed = embedImage)
                     elif candle_output == "error":
@@ -170,7 +178,7 @@ if __name__ == "__main__":
             # if user's request has more than one string, send error
             elif len(str_divide) > 1:
                 # ignores commands about coins
-                if command == "future":
+                if str_divide[0] == "future" or str_divide[0] == "bought" or str_divide[0] == "sold" or str_divide[0] == "undo":
                     pass
                 else:
                     await message.channel.send(db.error())
@@ -199,6 +207,8 @@ if __name__ == "__main__":
                         await message.channel.send(db.error())
                     else:
                         await message.channel.send(embed = db.get_coin_price(command))
+            elif command == "bought" or command == "sold":
+                pass
             else:
                     await message.channel.send(db.error())
 

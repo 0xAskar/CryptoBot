@@ -60,7 +60,11 @@ class discord_bot:
             embedResponse = discord.Embed(color=0xFF8C00)
             embedResponse.add_field(name= coin_name + " Price", value= "$" + str(price), inline=False)
             embedResponse.add_field(name= coin_name + " Percent Change (24hr)", value= str(percent_change) + "%", inline=False)
-            embedResponse.add_field(name= coin_name + " Market Cap", value= "$" + mc, inline=False)
+            #i'll change this later in the check large function
+            if (mc == "Not Found"):
+                embedResponse.add_field(name= coin_name + " Market Cap", value= mc, inline=False)
+            else:
+                embedResponse.add_field(name= coin_name + " Market Cap", value= "$" + mc, inline=False)
             response1 = "```" + coin_name + "'s price: $" + str(price) + "\n" + "Percent Change (24h): " + str(percent_change) + "%" + "\n" + "Market Cap: $" + str(market_cap) + "```"
             # response2 = "```" + coin_name + "'s price: $" + str(price) + ", " + "Percent Change (24h): " + str(percent_change) + "%" + "\n" + "Market Cap: $" + str(market_cap) + "```"
             return embedResponse
@@ -143,6 +147,188 @@ class discord_bot:
             return ""
         else:
             return "error"
+
+    # chart of two coins for instance link/btc
+    def get_line_chart_two(self, coin_name, coin_name2, num_days):
+        #coin label work
+        coin_label = ""
+        coin_label2 = ""
+        coin_name = coin_name.lower()
+        coin_label2 = coin_name2.lower()
+        coin_label = self.check_coin(coin_name)
+        coin_label2 = self.check_coin(coin_name2)
+        #checking if num days is valid
+        temp = str(num_days)
+        if not temp.isdigit():
+            temp = temp.lower()
+            if temp != "max":
+                return False
+
+        if self.check_coin(coin_name) != "":
+            charts = self.cg.get_coin_market_chart_by_id(id = coin_label, vs_currency='usd', days = num_days)
+            charts2 = self.cg.get_coin_market_chart_by_id(id = coin_label2, vs_currency = 'usd', days = num_days)
+            plt.clf()
+            x_vals = []
+            y_vals = []
+            count = 0
+            open, close, high, low, volume = [], [], [], [], []
+            min = len(charts["prices"])
+            if min > len(charts2["prices"]):
+                min = len(charts2["prices"])
+            for point in charts['prices']:
+                if count == min:
+                    break
+                if count == 0:
+                    time_conv = datetime.utcfromtimestamp(point[0] / 1000).strftime('%Y-%m-%d')
+                x_vals.append(time_conv)
+                y_vals.append(point[1])
+                volume.append(1)
+                count += 1
+            count = 0
+            for point in charts2['prices']:
+                if count == min:
+                    break
+                y_vals[count] = y_vals[count] / point[1]
+                count += 1
+            # create the date and dataframe
+            open = y_vals
+            close = y_vals
+            high = y_vals
+            low = y_vals
+            period = len(open)
+            frequency = ""
+            if num_days == "1":
+                frequency = "5min"
+            elif num_days != "max" and (int(num_days) <= 90 and int(num_days) > 1):
+                frequency = "1H"
+            else:
+                frequency = "4D"
+            dti = pd.date_range(time_conv, periods=period, freq=frequency)
+            ohlc = {"opens":open, "highs":high, "lows":low, "closes":close, "volumes":volume}
+            ohlc = pd.DataFrame(data = ohlc, index = dti)
+            ohlc.columns = ['Open', 'High', 'Low', 'Close', 'Volume'] #these two lines solved the dataframe problem
+            ohlc.index.name = "Date"
+            # plot and make it look good
+            percent_change = ((close[len(close) - 1] - close[0]) / close[0]) * 100
+            percent_change = round(percent_change, 2)
+            changed, days = "", ""
+            # change title based on days
+            if num_days == "1":
+                days = "the past 24 hours"
+            elif num_days == "MAX" or num_days == "max":
+                days = "Within Lifetime"
+            else:
+                days = "Past " + num_days + " Days"
+            # change title based on percent
+            if percent_change > 0:
+                changed = "+"
+            else:
+                changed = ""
+
+            percent_change = "{:,}".format(percent_change) # had to do it here because this converts it to a string, need it as a int above
+            # title = "\n" + "\n" + coin_label + "'s price " + changed + percent_change + "% within " + days
+            coin_label = self.change_cap(coin_name.lower())
+            coin_label2 = self.change_cap(coin_name2.lower())
+            title1 = "\n" + "\n" + coin_label + "/" + coin_label2 + " " + changed + percent_change + "% - " + days
+            mc = mpf.make_marketcolors(
+                                up='tab:blue',down='tab:red',
+                                wick={'up':'blue','down':'red'},
+                                volume='tab:green',
+                               )
+
+            edited_style  = mpf.make_mpf_style(gridstyle = '-', facecolor = "lightgray", gridcolor = "white", edgecolor = "black", base_mpl_style = "classic", marketcolors=mc)
+            mpf.plot(ohlc, type='line', title = title1, figratio = (16,10), ylabel = coin_label + "/" + coin_label2, style = edited_style, savefig = "chart.png")
+            return ""
+        else:
+            return "error"
+
+
+    # retreive data and create candle chart of any coin
+    def get_candle_chart(self, coin_name, num_days):
+
+        # used the below links for the mpf libraries
+        # https://github.com/matplotlib/mplfinance#usage
+        # https://github.com/matplotlib/mplfinance/blob/master/examples/styles.ipynb
+
+        #coin label work
+        coin_label = ""
+        coin_name = coin_name.lower()
+        coin_label = self.check_coin(coin_name)
+        #checking if num days is valid
+        valid_days = ["1","7","14","30","90","180","365", "MAX", "max"]
+        check = False
+        error_days = "```Command Error: Wrong number of days: Only can input '1','7','14','30','90','180','365','MAX'```"
+        for day in valid_days:
+            if num_days == day:
+                check = True
+        if check == False:
+            return error_days
+
+        if self.check_coin(coin_name) != "":
+            candles = self.cg.get_coin_ohlc_by_id(id = coin_label, vs_currency='usd', days = num_days)
+            plt.clf()
+            date_arr, year, month, day, hour, open, high, low, close, volume = [], [], [], [], [], [], [], [], [], []
+            dohlcv = [[]]
+            count = 0
+            time_conv = ""
+            for point in candles:
+                # convert to standard date and time, parse and add them into arrays
+                if count == 0:
+                    time_conv = datetime.utcfromtimestamp(point[0] / 1000).strftime('%Y-%m-%d')
+                # parse and add in the OHLC vectors
+                open.append(point[1])
+                high.append(point[2])
+                low.append(point[3])
+                close.append(point[4])
+                volume.append(1)
+                count += 1
+            # create the date and dataframe
+            period = len(open)
+            frequency = ""
+            if num_days == "1":
+                frequency = "30min"
+            elif num_days == "7" or num_days == "14" or num_days == "30":
+                frequency = "4H"
+            else:
+                frequency = "4D"
+            dti = pd.date_range(time_conv, periods=period, freq=frequency)
+            ohlc = {"opens":open, "highs":high, "lows":low, "closes":close, "volumes":volume}
+            ohlc = pd.DataFrame(data = ohlc, index = dti)
+            ohlc.columns = ['Open', 'High', 'Low', 'Close', 'Volume'] #these two lines solved the dataframe problem
+            ohlc.index.name = "Date"
+            # plot and make it look good
+            percent_change = ((close[len(close) - 1] - close[0]) / close[0]) * 100
+            percent_change = round(percent_change, 2)
+            changed, days = "", ""
+            # change title based on days
+            if num_days == "1":
+                days = "the past 24 hours"
+            elif num_days == "MAX" or num_days == "max":
+                days = "Within Lifetime"
+            else:
+                days = "Past " + num_days + " Days"
+            # change title based on percent
+            if percent_change > 0:
+                changed = "+"
+            else:
+                changed = ""
+
+            percent_change = "{:,}".format(percent_change) # had to do it here because this converts it to a string, need it as a int above
+            # title = "\n" + "\n" + coin_label + "'s price " + changed + percent_change + "% within " + days
+            coin_label = self.change_cap(coin_label)
+            title1 = "\n" + "\n" + coin_label + " " + changed + percent_change + "% - " + days
+            mc = mpf.make_marketcolors(
+                                up='tab:blue',down='tab:red',
+                                wick={'up':'blue','down':'red'},
+                                volume='tab:green',
+                               )
+
+            edited_style  = mpf.make_mpf_style(gridstyle = '-', facecolor = "lightgray", gridcolor = "white", edgecolor = "black", base_mpl_style = "classic", marketcolors=mc)
+            mpf.plot(ohlc, type='candle', title = title1, figratio = (16,10), ylabel = 'Price - USD', style = edited_style, savefig = "candle.png")
+            return ""
+        else:
+            return "error"
+
 
     # retreive data and create candle chart of any coin
     def get_candle_chart(self, coin_name, num_days):
@@ -294,6 +480,7 @@ class discord_bot:
 
     def check_large(self, num): #there are better ways but atm, its not important
         letter = ""
+        num = float(num)
         if num == 0:
             return "Not Found"
         if num >= 1000000:

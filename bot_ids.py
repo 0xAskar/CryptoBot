@@ -1,0 +1,4 @@
+bot_token_real="NzY5MjY1ODM5NTg0MDUxMjAw.X5MgpA.CcP88akzTs4K6HFgvy6OSrpVRZI"
+bot_id_real=769265839584051200
+bot_token_tester="Nzc4ODMzNDczOTEzMjI1MjE2.X7XvMg.aHpjM1ppv2mZ-T2E0Lds9Tm2JIk"
+bot_id_tester=778833473913225216
