@@ -118,7 +118,8 @@ if __name__ == "__main__":
                         await message.channel.send(db.error())
                 # if user doesn't specify num days, default to 30
                 elif len(str_divide) == 2:
-                    if db.get_coin_chart(str_divide[1], "30"):
+                    line_output = db.get_line_chart(str_divide[1], "30")
+                    if line_output == "":
                         await message.channel.send(file = discord.File('chart.png'))
                     else:
                         await message.channel.send(db.error())
@@ -141,7 +142,9 @@ if __name__ == "__main__":
                 elif len(str_divide) == 2:
                     candle_output = db.get_candle_chart(str_divide[1], "30")
                     if candle_output == "":
-                        await message.channel.send(file = discord.File('candle.png'))
+                        embedImage = discord.Embed(color=0x4E6F7B) #creates embed
+                        embedImage.set_image(url="attachment://candle.png")
+                        await message.channel.send(file = discord.File("candle.png"), embed = embedImage)
                     elif candle_output == "error":
                         await message.channel.send(db.error())
                     else:
