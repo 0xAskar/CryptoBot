@@ -1,4 +1,5 @@
 import math
+import bot_ids
 from math import log10, floor
 import requests
 import pandas as pd
@@ -20,7 +21,7 @@ class discord_bot:
     # api instance
     cg = CoinGeckoAPI()
     es = etherscan.Client(
-        api_key='Y9KQMISGCXVNMJJXA2TBFMENF1JM2D4HAP',
+        api_key= bot_ids.etherscan_api_key,
         cache_expire_after=5,
     )
 
@@ -89,10 +90,25 @@ class discord_bot:
             for point in charts['prices']:
                 if count == 0:
                     time_conv = datetime.utcfromtimestamp(point[0] / 1000).strftime('%Y-%m-%d')
+                if count == 0:
+                    time1 = datetime.utcfromtimestamp(point[0] / 1000).strftime('%Y-%m-%d %H:%M:%S')
+                if count == 1:
+                    time2 = datetime.utcfromtimestamp(point[0] / 1000).strftime('%Y-%m-%d %H:%M:%S')
                 x_vals.append(time_conv)
                 y_vals.append(point[1])
                 volume.append(1)
                 count += 1
+            times = [time1, time2]
+            date_stamp = [year1, year2, month1, month2, day1, day2, hour1, hour2, min1, min2, sec1, sec2]
+            time_increments = [[0,4], [5,7], [8,10], [12,14], [16,18], [20,22]]
+            year1, year2, month1, month2, day1, day2, hour1, hour2, min1, min2, sec1, sec2 = 0,0,0,0,0,0,0,0,0,0,0,0
+            # for time in times:
+            #     count = 0
+            #     for t in range(0:len(time))
+            #         for increment in date_stamp:
+            #             time[t:t+1]
+            #             count += 1
+
             # create the date and dataframe
             open = y_vals
             close = y_vals

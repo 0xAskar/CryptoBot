@@ -5,6 +5,7 @@ from bot_class import discord_bot
 from dotenv import load_dotenv
 import asyncio
 import discord
+import datetime
 from discord.ext import tasks, commands
 from discord.ext.tasks import loop
 from discord.ext import commands
@@ -23,6 +24,7 @@ if __name__ == "__main__":
     bot_member = None
     askar_member = None
     askar_name = ""
+    last_fetch_time = ""
 
     # load up the coingecko, etherscan, and discord api's
     load_dotenv()
@@ -70,6 +72,8 @@ if __name__ == "__main__":
                 askar_member = member
                 askar_name = member.name
         print(f'{bot_name} has connected to Discord!')
+        global last_fetch_time
+        last_fetch_time = datetime.datetime.now()
 
     @bot.event
     async def on_message(message):
@@ -170,7 +174,7 @@ if __name__ == "__main__":
             # if user's request has more than one string, send error
             elif len(str_divide) > 1:
                 # ignores commands about coins
-                if str_divide[0] == "future" or str_divide[0] == "bought" or str_divide[0] == "sold" or str_divide[0] == "undo":
+                if str_divide[0] == "future" or str_divide[0] == "bought" or str_divide[0] == "sold" or str_divide[0] == "undo" or str_divide[0] == "rank":
                     pass
                 else:
                     await message.channel.send(db.error())
@@ -184,6 +188,8 @@ if __name__ == "__main__":
                 if command == "gas":
                     await message.channel.send(embed = db.gas())
                 # if user wants to get the knowledge of shi's shitcoin
+                elif command == "fetch":
+                    await message.channel.send(last_fetch_time)
                 elif command == 'future':
                     await message.channel.send(db.future())
                 # if user wants info about global defi stats
