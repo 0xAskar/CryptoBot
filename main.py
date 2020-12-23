@@ -109,20 +109,21 @@ if __name__ == "__main__":
             # if user requests a line chart of a coin
             elif str_divide[0] == "chart":
                 if len(str_divide) == 4:
-                    line_output = db.get_line_chart_two(str_divide[1], str_divide[2],str_divide[3])
+                    # line_output = db.get_line_chart_two(str_divide[1], str_divide[2],str_divide[3])
+                    line_output = db.get_line_chart(str_divide[1], str_divide[2], str_divide[3], 2)
                     if line_output == "":
                         await message.channel.send(file = discord.File('chart.png'))
                     else:
                         await message.channel.send(db.error())
                 elif len(str_divide) == 3:
-                    line_output = db.get_line_chart(str_divide[1], str_divide[2])
+                    line_output = db.get_line_chart(str_divide[1], "", str_divide[2], 1)
                     if line_output == "":
                         await message.channel.send(file = discord.File('chart.png'))
                     else:
                         await message.channel.send(db.error())
                 # if user doesn't specify num days, default to 30
                 elif len(str_divide) == 2:
-                    line_output = db.get_line_chart(str_divide[1], "30")
+                    line_output = db.get_line_chart(str_divide[1], "", "30", 1)
                     if line_output == "":
                         await message.channel.send(file = discord.File('chart.png'))
                     else:
@@ -205,8 +206,6 @@ if __name__ == "__main__":
                         await message.channel.send(db.error())
                     else:
                         await message.channel.send(embed = db.get_coin_price(command))
-            elif command == "bought" or command == "sold":
-                pass
             else:
                     await message.channel.send(db.error())
 
