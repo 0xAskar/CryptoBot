@@ -44,6 +44,7 @@ if __name__ == "__main__":
                 break
         # intents = discord.intents.all()
         # client = discord.Client(intent = intents)
+        # find askar
         for member in guild.members:
             if member.id == bot_id:
                 bot_member = member
@@ -51,10 +52,16 @@ if __name__ == "__main__":
             if member.id == askar_id:
                 askar_member = member
                 askar_name = member.name
+        # update the name to the price of bitcoin and the status to the price of eth
         while not bot.is_closed():
             await bot_member.edit(nick = db.btc_status())
             await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= db.eth_status()))
             await asyncio.sleep(10)
+        # send askar alert if somehow this loop is closed out
+        global last_fetch_time
+        last_fetch_time = datetime.datetime.now()
+        user = db.find_member(bot, guild_p, askar_id)
+        await user.send(last_fetch_time())
 
 
     @bot.event
@@ -85,7 +92,7 @@ if __name__ == "__main__":
         if message.author == bot.user:
             return
         # if message begins with "!"
-        if info[0] == '!':
+        if len(info) > 0  and info[0] == '!':
             #  parse out "!", and separate into string array
             command = info[1:]
             str_divide = command.split()
