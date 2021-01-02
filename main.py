@@ -16,8 +16,6 @@ load_dotenv()
 if __name__ == "__main__":
     # main variables
     bot_token = bot_ids.bot_token_real
-    guild_s = "Playground"
-    guild_p = "/r/Pennystocks"
     bot_id = bot_ids.bot_id_real
     askar_id = 372010870756081675
     bot_name = ""
@@ -39,46 +37,47 @@ if __name__ == "__main__":
     @bot.event
     async def background_task():
         await bot.wait_until_ready()
+        bot_list = []
         for guild in bot.guilds:
-            if guild.name == guild_p:
-                break
-        # intents = discord.intents.all()
-        # client = discord.Client(intent = intents)
-        # find askar
-        for member in guild.members:
-            if member.id == bot_id:
-                bot_member = member
-                bot_name = member.name
-            if member.id == askar_id:
-                askar_member = member
-                askar_name = member.name
+            for member in guild.members:
+                if member.id == bot_id:
+                    bot_member = member
+                    bot_name = member.name
+                    bot_list.append(bot_member)
+                if member.id == askar_id:
+                    askar_member = member
+                    askar_name = member.name
         # update the name to the price of bitcoin and the status to the price of eth
         while not bot.is_closed():
-            await bot_member.edit(nick = db.btc_status())
-            await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= db.eth_status()))
+            for bot_x in bot_list:
+                await bot_x.edit(nick = db.btc_status())
+                await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= db.eth_status()))
             await asyncio.sleep(10)
         # send askar alert if somehow this loop is closed out
         global last_fetch_time
         last_fetch_time = datetime.datetime.now()
         user = db.find_member(bot, guild_p, askar_id)
-        await user.send(last_fetch_time())
+        await user.send(last_fetch_time)
 
 
     @bot.event
     async def on_ready():
+        bot_list = []
+        bot_names = []
         for guild in bot.guilds:
-            if guild.name == guild_p:
-                break
-        members = '\n - '.join([member.name for member in guild.members])
-        ids = [member.id for member in guild.members]
-        for member in guild.members:
-            if member.id == bot_id:
-                bot_member = member
-                bot_name = member.name
-            if member.id == askar_id:
-                askar_member = member
-                askar_name = member.name
-        print(f'{bot_name} has connected to Discord!')
+            members = '\n - '.join([member.name for member in guild.members])
+            ids = [member.id for member in guild.members]
+            for member in guild.members:
+                if member.id == bot_id:
+                    bot_member = member
+                    bot_name = member.name
+                    bot_list.append(bot_member)
+                    bot_names.append(bot_name)
+                if member.id == askar_id:
+                    askar_member = member
+                    askar_name = member.name
+        for bot_x in bot_names:
+            print(f'{bot_x} has connected to Discord!')
         global last_fetch_time
         last_fetch_time = datetime.datetime.now()
 

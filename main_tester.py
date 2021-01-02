@@ -1,7 +1,7 @@
 import bot_ids
 import os
-import bot_class_tester
-from bot_class_tester import discord_bot
+import bot_class
+from bot_class import discord_bot
 from dotenv import load_dotenv
 import asyncio
 import discord
@@ -12,19 +12,18 @@ from discord.ext import commands
 
 load_dotenv()
 
-# global variables
-bot_token = bot_ids.bot_token_tester
-guild_s = "Playground"
-guild_p = "/r/Pennystocks"
-bot_id = bot_ids.bot_id_tester
-askar_id = 372010870756081675
-bot_name = ""
-bot_member = None
-askar_member = None
-askar_name = ""
-last_fetch_time = ""
 
 if __name__ == "__main__":
+    # main variables
+    bot_token = bot_ids.bot_token_real
+    bot_id = bot_ids.bot_id_real
+    askar_id = 372010870756081675
+    bot_name = ""
+    bot_member = None
+    askar_member = None
+    askar_name = ""
+    last_fetch_time = ""
+
     # load up the coingecko, etherscan, and discord api's
     load_dotenv()
 
@@ -38,39 +37,47 @@ if __name__ == "__main__":
     @bot.event
     async def background_task():
         await bot.wait_until_ready()
+        bot_list = []
         for guild in bot.guilds:
-            if guild.name == guild_s:
-                break
-        # intents = discord.intents.all()
-        # client = discord.Client(intent = intents)
-        for member in guild.members:
-            if member.id == bot_id:
-                bot_member = member
-                bot_name = member.name
-            if member.id == askar_id:
-                askar_member = member
-                askar_name = member.name
+            for member in guild.members:
+                if member.id == bot_id:
+                    bot_member = member
+                    bot_name = member.name
+                    bot_list.append(bot_member)
+                if member.id == askar_id:
+                    askar_member = member
+                    askar_name = member.name
+        # update the name to the price of bitcoin and the status to the price of eth
         while not bot.is_closed():
-            await bot_member.edit(nick = db.btc_status())
-            await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= db.eth_status()))
+            for bot_x in bot_list:
+                await bot_x.edit(nick = db.btc_status())
+                await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= db.eth_status()))
             await asyncio.sleep(10)
+        # send askar alert if somehow this loop is closed out
+        global last_fetch_time
+        last_fetch_time = datetime.datetime.now()
+        user = db.find_member(bot, guild_p, askar_id)
+        await user.send(last_fetch_time)
 
 
     @bot.event
     async def on_ready():
+        bot_list = []
+        bot_names = []
         for guild in bot.guilds:
-            if guild.name == guild_s:
-                break
-        members = '\n - '.join([member.name for member in guild.members])
-        ids = [member.id for member in guild.members]
-        for member in guild.members:
-            if member.id == bot_id:
-                bot_member = member
-                bot_name = member.name
-            if member.id == askar_id:
-                askar_member = member
-                askar_name = member.name
-        print(f'{bot_name} has connected to Discord!')
+            members = '\n - '.join([member.name for member in guild.members])
+            ids = [member.id for member in guild.members]
+            for member in guild.members:
+                if member.id == bot_id:
+                    bot_member = member
+                    bot_name = member.name
+                    bot_list.append(bot_member)
+                    bot_names.append(bot_name)
+                if member.id == askar_id:
+                    askar_member = member
+                    askar_name = member.name
+        for bot_x in bot_names:
+            print(f'{bot_x} has connected to Discord!')
         global last_fetch_time
         last_fetch_time = datetime.datetime.now()
 
@@ -84,32 +91,21 @@ if __name__ == "__main__":
         if message.author == bot.user:
             return
         # if message begins with "!"
-        if info[0] == '!':
+        if len(info) > 0  and info[0] == '!':
             #  parse out "!", and separate into string array
             command = info[1:]
             str_divide = command.split()
             # if user asks for help on commands
             if command == "crypto-help":
-                response = "```CryptoBot gives you sends live updates of " + \
-                "any cryptocurrency!" + "\n" + "\n" + \
-                "Commands:" + "\n" + "\n" + \
-                "   Price Command: ![coin symbol/name], '!btc' or '!bitcoin' - retreive price information about a coin" + "\n" + "\n" + \
-                "   Chart Command: '!chart btc 5' <chart> <coin> <num days> - retreive the line chart of a coin" + "\n" + "\n" + \
-                "   Candle Command: '!candle btc 5' <chart> <coin_name/symbol> <num days>, "\
-                "days has to be one of these:" + "\n" + "   '1','7','14','30','90','180','365','MAX' - retreive the candle chart of a coin" + "\n" + "\n" + \
-                "   Suggestion Command: !suggestion do this' <suggestion> <message> - send a suggestion for the bot" + "\n" + "\n" + \
-                "   Gas Command: '!gas' - get information about gwei prices" + "\n" + "\n" + \
-                "   Convert Command: '!convert <coin1> <coin2>' - get conversion rate of coin1 in number of coin2" + "\n" + "\n" + \
-                "   Global Defi Stats: '!global_defi' - get global information about defi" + "\n" + "\n" + \
-                "Credits to CoinGecko® for the free API!```"
-                suggester = db.find_member(bot, guild_s, message.author.id)
+                response = db.help
+                suggester = db.find_member(bot, guild_p, message.author.id)
                 await suggester.send(response)
                 await message.add_reaction('\N{THUMBS UP SIGN}')
             # if user wants to send a suggestion
             elif str_divide[0] == "suggestion":
                 if len(str_divide) > 1:
-                    user = db.find_member(bot, guild_s, askar_id)
-                    suggester = db.find_member(bot, guild_s, message.author.id)
+                    user = db.find_member(bot, guild_p, askar_id)
+                    suggester = db.find_member(bot, guild_p, message.author.id)
                     await user.send("suggestion" + " by " + suggester.name + ": " + command[11:])
                     suggester = db.find_member(bot, guild_s, message.author.id)
                     await suggester.send("```Your suggestion was sent```")
@@ -185,22 +181,22 @@ if __name__ == "__main__":
             # if user's request has more than one string, send error
             elif len(str_divide) > 1:
                 # ignores commands about coins
-                if str_divide[0] == "future" or str_divide[0] == "bought" or str_divide[0] == "sold" or str_divide[0] == "undo":
+                if str_divide[0] == "future" or str_divide[0] == "bought" or str_divide[0] == "sold" or str_divide[0] == "undo" or str_divide[0] == "rank":
                     pass
                 else:
-                    # pass
                     await message.channel.send(db.error())
             elif len(str_divide) == 1:
                 # if user wants events
                 # if command == "events":
                 #     await message.channel.send(db.get_events())
+                # elif command == 'global':
+                #     get_global_data()
+                # if user wants eth gas prices
                 if command == "gas":
                     await message.channel.send(embed = db.gas())
+                # if user wants to get the knowledge of shi's shitcoin
                 elif command == "fetch":
                     await message.channel.send(last_fetch_time)
-                elif command == 'global':
-                    print(db.get_global_data())
-                # if user wants to get the knowledge of shi's shitcoin
                 elif command == 'future':
                     await message.channel.send(db.future())
                 # if user wants info about global defi stats
