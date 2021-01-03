@@ -78,6 +78,10 @@ if __name__ == "__main__":
                     askar_name = member.name
         for bot_x in bot_names:
             print(f'{bot_x} has connected to Discord!')
+        output = db.cg.get_coin_by_id(id= "bitcoin")
+        # print(output["market_data"]["circulating_supply"])
+        # for x in output:
+            # print(x)
         global last_fetch_time
         last_fetch_time = datetime.datetime.now()
 

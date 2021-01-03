@@ -179,6 +179,12 @@ if __name__ == "__main__":
                         await message.channel.send(db.error())
                 else:
                     await message.channel.send(db.error())
+            elif str_divide[0] == "supply":
+                supply_output = db.get_supply(str_divide[1])
+                if supply_output != "e":
+                    await message.channel.send(embed = supply_output)
+                else:
+                    await message.channel.send(db.error())
             # if user's request has more than one string, send error
             elif len(str_divide) > 1:
                 # ignores commands about coins

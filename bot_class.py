@@ -36,8 +36,9 @@ class discord_bot:
     "   Suggestion Command: !suggestion do this' <suggestion> <message> - send a suggestion for the bot" + "\n" + "\n" + \
     "   Gas Command: '!gas' - get information about gwei prices" + "\n" + "\n" + \
     "   Convert Command: '!convert <num> <coin1> <coin2>' - get conversion rate of num of coin1 in number of coin2 (ex: !convert 1000 usdc btc)" + "\n" + "\n" + \
-    "   Global Defi Stats: '!global_defi' - get global information about defi" + "\n" + "\n" + \
-    "   Top Trending Coins: '!trendy" + "\n" + "\n" + \
+    "   Global Defi Stats Command: '!global_defi' - get global information about defi" + "\n" + "\n" + \
+    "   Top Trending Coins Command: '!trendy - get the top trending coins on CoinGecko" + "\n" + "\n" + \
+    "   Supply Command: '!supply <coin> - get the circulating and maximum supply of a coin" + "\n" + "\n" + \
     "Credits to CoinGecko® for the free API!```"
 
 
@@ -316,20 +317,36 @@ class discord_bot:
         embedResponse.add_field(name= first + " to " + second + " Conversion", value= str(num) + " " + first + " = " + str(conversion) + " " + second, inline=False)
         return embedResponse
 
+    def get_supply(self, coin):
+        coin_name = ""
+        coin_name = self.check_coin(coin)
+        # check if the coin names are valid
+        if coin_name == "":
+            return "e"
+
+        data = self.cg.get_coin_by_id(id= coin_name)
+        csupply = data["market_data"]["circulating_supply"]
+        msupply = data["market_data"]["max_supply"]
+
+        coin_name = self.change_cap(coin_name)
+        csupply = self.check_large(csupply)
+        msupply = self.check_large(msupply)
+
+        embedResponse = discord.Embed(color = 0x969C9F)
+        embedResponse.add_field(name = coin_name + " Circulating Supply", value = csupply, inline=False)
+        embedResponse.add_field(name = coin_name + " Max Supply", value = msupply, inline=False)
+        return embedResponse
 
     # find trending coins on coingecko
     def get_trending(self):
-        coin_names = []
         numbering = range(1,8)
         output = ""
         trendy = self.cg.get_search_trending()
-        for x in trendy["coins"]:
-            coin_names.append(x['item']['name'])
         count = 0
-        for x in reversed(coin_names):
-            output += str(numbering[count]) + ") " + x + "\n"
+        for x in trendy["coins"]:
+            output += str(numbering[count]) + ") " + x['item']['name'] + "\n"
             count += 1
-        embedResponse = discord.Embed(color=0xF8C300)
+        embedResponse = discord.Embed(color=0xF93A2F)
         embedResponse.add_field(name = "Top Trending Coins on CoinGecko", value = output)
         return embedResponse
 
