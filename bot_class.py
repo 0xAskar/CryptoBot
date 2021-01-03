@@ -37,6 +37,7 @@ class discord_bot:
     "   Gas Command: '!gas' - get information about gwei prices" + "\n" + "\n" + \
     "   Convert Command: '!convert <num> <coin1> <coin2>' - get conversion rate of num of coin1 in number of coin2 (ex: !convert 1000 usdc btc)" + "\n" + "\n" + \
     "   Global Defi Stats: '!global_defi' - get global information about defi" + "\n" + "\n" + \
+    "   Top Trending Coins: '!trendy" + "\n" + "\n" + \
     "Credits to CoinGecko® for the free API!```"
 
 
@@ -313,6 +314,23 @@ class discord_bot:
         num = self.check_large(int(num))
         embedResponse = discord.Embed(color=0x7A2F8F)
         embedResponse.add_field(name= first + " to " + second + " Conversion", value= str(num) + " " + first + " = " + str(conversion) + " " + second, inline=False)
+        return embedResponse
+
+
+    # find trending coins on coingecko
+    def get_trending(self):
+        coin_names = []
+        numbering = range(1,8)
+        output = ""
+        trendy = self.cg.get_search_trending()
+        for x in trendy["coins"]:
+            coin_names.append(x['item']['name'])
+        count = 0
+        for x in reversed(coin_names):
+            output += str(numbering[count]) + ") " + x + "\n"
+            count += 1
+        embedResponse = discord.Embed(color=0xF8C300)
+        embedResponse.add_field(name = "Top Trending Coins on CoinGecko", value = output)
         return embedResponse
 
     # functions to check coins, names, and size

@@ -18,6 +18,7 @@ if __name__ == "__main__":
     bot_token = bot_ids.bot_token_real
     bot_id = bot_ids.bot_id_real
     askar_id = 372010870756081675
+    guild_p = "/r/Pennystocks"
     bot_name = ""
     bot_member = None
     askar_member = None
@@ -107,7 +108,7 @@ if __name__ == "__main__":
                     user = db.find_member(bot, guild_p, askar_id)
                     suggester = db.find_member(bot, guild_p, message.author.id)
                     await user.send("suggestion" + " by " + suggester.name + ": " + command[11:])
-                    suggester = db.find_member(bot, guild_s, message.author.id)
+                    suggester = db.find_member(bot, guild_p, message.author.id)
                     await suggester.send("```Your suggestion was sent```")
                     await message.add_reaction('\N{THUMBS UP SIGN}')
                 else:
@@ -197,6 +198,8 @@ if __name__ == "__main__":
                 # if user wants to get the knowledge of shi's shitcoin
                 elif command == "fetch":
                     await message.channel.send(last_fetch_time)
+                elif command == "trendy":
+                    await message.channel.send(embed = db.get_trending())
                 elif command == 'future':
                     await message.channel.send(db.future())
                 # if user wants info about global defi stats

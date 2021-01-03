@@ -1,7 +1,7 @@
 import bot_ids
 import os
-import bot_class
-from bot_class import discord_bot
+import bot_class_tester
+from bot_class_tester import discord_bot
 from dotenv import load_dotenv
 import asyncio
 import discord
@@ -15,8 +15,8 @@ load_dotenv()
 
 if __name__ == "__main__":
     # main variables
-    bot_token = bot_ids.bot_token_real
-    bot_id = bot_ids.bot_id_real
+    bot_token = bot_ids.bot_token_tester
+    bot_id = bot_ids.bot_id_tester
     askar_id = 372010870756081675
     bot_name = ""
     bot_member = None
@@ -178,6 +178,12 @@ if __name__ == "__main__":
                         await message.channel.send(db.error())
                 else:
                     await message.channel.send(db.error())
+            elif str_divide[0] == "supply":
+                supply_output = db.get_supply(str_divide[1])
+                if supply_output != "e":
+                    await message.channel.send(embed = supply_output)
+                else:
+                    await message.channel.send(db.error())
             # if user's request has more than one string, send error
             elif len(str_divide) > 1:
                 # ignores commands about coins
@@ -197,6 +203,8 @@ if __name__ == "__main__":
                 # if user wants to get the knowledge of shi's shitcoin
                 elif command == "fetch":
                     await message.channel.send(last_fetch_time)
+                elif command == "trendy":
+                    await message.channel.send(embed = db.get_trending())
                 elif command == 'future':
                     await message.channel.send(db.future())
                 # if user wants info about global defi stats

@@ -419,7 +419,31 @@ class discord_bot:
         embedResponse.add_field(name= first + " to " + second + " Conversion", value= str(num) + " " + first + " = " + str(conversion) + " " + second, inline=False)
         return embedResponse
 
-    # functions to check coins, names, and size
+    def get_supply(self, coin):
+        coin_name = ""
+        coin_name = self.check_coin(coin)
+        # check if the coin names are valid
+        if coin_name == "":
+            return "e"
+
+    # find trending coins on coingecko
+    def get_trending(self):
+        coin_names = []
+        numbering = range(1,8)
+        output = ""
+        trendy = self.cg.get_search_trending()
+        for x in trendy["coins"]:
+            coin_names.append(x['item']['name'])
+        count = 0
+        for x in reversed(coin_names):
+            output += str(numbering[count]) + ") " + x + "\n"
+            count += 1
+        embedResponse = discord.Embed(color=0xF8C300)
+        embedResponse.add_field(name = "Top Trending Coins on CoinGecko", value = output)
+        return embedResponse
+
+
+    # functions to check coins, names, and size: helper functions
 
     # round numbers correctly, sig figs for <1, rounding for >1
     def round_num(self, num):
