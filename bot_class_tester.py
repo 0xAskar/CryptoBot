@@ -29,16 +29,22 @@ class discord_bot:
     def btc_status(self):
         price_data = self.cg.get_price(ids= 'bitcoin', vs_currencies='usd')
         price = price_data['bitcoin']['usd']
-        price = round(price,2)
-        response = "Bitcoin - $" + str(price)
-        return response
+        if price != None:
+            price = round(price,2)
+            response = "Bitcoin - $" + str(price)
+            return response
+        else:
+            return "CoinGecko Error"
 
     def eth_status(self):
         price_data = self.cg.get_price(ids= 'Ethereum', vs_currencies='usd')
         price = price_data['ethereum']['usd']
-        price = round(price,2)
-        response = "Ethereum: $" + str(price)
-        return response
+        if price != None:
+            price = round(price,2)
+            response = "Ethereum: $" + str(price)
+            return response
+        else:
+            return "Coingecko Errors"
 
     def get_coin_price(self, coin_name):
         coin_label = ""
@@ -47,24 +53,25 @@ class discord_bot:
         if self.check_coin(coin_name) != "":
             price_data = self.cg.get_price(ids= coin_label, vs_currencies='usd', include_24hr_change='true', include_market_cap = 'true')
             price = price_data[coin_label]['usd']
-            price = round(price,3)
-            price = "{:,}".format(price)
-            percent_change = price_data[coin_label]['usd_24h_change']
-            percent_change = round(percent_change, 2)
-            market_cap = price_data[coin_label]['usd_market_cap']
-            market_cap = round(market_cap, 2)
-            market_cap = self.check_large(market_cap)
-            mc = market_cap
-            # market_cap = "{:,}".format(market_cap)
-            coin_name = self.change_cap(coin_name)
-            # embedResponse = discord.Embed(title=coin_name + " Info", color=0xFF8C00)
-            embedResponse = discord.Embed(color=0xFF8C00)
-            embedResponse.add_field(name= coin_name + " Price", value= "$" + str(price), inline=False)
-            embedResponse.add_field(name= coin_name + " Percent Change (24hr)", value= str(percent_change) + "%", inline=False)
-            embedResponse.add_field(name= coin_name + " Market Cap", value= "$" + mc, inline=False)
-            response1 = "```" + coin_name + "'s price: $" + str(price) + "\n" + "Percent Change (24h): " + str(percent_change) + "%" + "\n" + "Market Cap: $" + str(market_cap) + "```"
-            # response2 = "```" + coin_name + "'s price: $" + str(price) + ", " + "Percent Change (24h): " + str(percent_change) + "%" + "\n" + "Market Cap: $" + str(market_cap) + "```"
-            return embedResponse
+            if price != None:
+                price = round(price,3)
+                price = "{:,}".format(price)
+                percent_change = price_data[coin_label]['usd_24h_change']
+                percent_change = round(percent_change, 2)
+                market_cap = price_data[coin_label]['usd_market_cap']
+                market_cap = round(market_cap, 2)
+                market_cap = self.check_large(market_cap)
+                mc = market_cap
+                # market_cap = "{:,}".format(market_cap)
+                coin_name = self.change_cap(coin_name)
+                # embedResponse = discord.Embed(title=coin_name + " Info", color=0xFF8C00)
+                embedResponse = discord.Embed(color=0xFF8C00)
+                embedResponse.add_field(name= coin_name + " Price", value= "$" + str(price), inline=False)
+                embedResponse.add_field(name= coin_name + " Percent Change (24hr)", value= str(percent_change) + "%", inline=False)
+                embedResponse.add_field(name= coin_name + " Market Cap", value= "$" + mc, inline=False)
+                response1 = "```" + coin_name + "'s price: $" + str(price) + "\n" + "Percent Change (24h): " + str(percent_change) + "%" + "\n" + "Market Cap: $" + str(market_cap) + "```"
+                # response2 = "```" + coin_name + "'s price: $" + str(price) + ", " + "Percent Change (24h): " + str(percent_change) + "%" + "\n" + "Market Cap: $" + str(market_cap) + "```"
+                return embedResponse
         return ""
 
     # retreive data and create candle chart of any coin
@@ -406,17 +413,24 @@ class discord_bot:
         # retreive price data about the coins
         first_data = self.cg.get_price(ids= first_coin, vs_currencies='usd')
         first_price = first_data[first_coin]['usd']
-        second_data = self.cg.get_price(ids= second_coin, vs_currencies='usd')
-        second_price = second_data[second_coin]['usd']
-        # convert to proper cap.
-        first = self.change_cap(first)
-        second = self.change_cap(second)
-        conv_num = float(num) * (first_price / second_price)
-        conversion = self.round_num(conv_num)
-        conversion = self.check_large(conversion)
-        num = self.check_large(int(num))
-        embedResponse = discord.Embed(color=0x7A2F8F)
-        embedResponse.add_field(name= first + " to " + second + " Conversion", value= str(num) + " " + first + " = " + str(conversion) + " " + second, inline=False)
+        if first_price != None:
+            second_data = self.cg.get_price(ids= second_coin, vs_currencies='usd')
+            second_price = second_data[second_coin]['usd']
+            if second_price != None:
+                # convert to proper cap.
+                first = self.change_cap(first)
+                second = self.change_cap(second)
+                conv_num = float(num) * (first_price / second_price)
+                conversion = self.round_num(conv_num)
+                conversion = self.check_large(conversion)
+                num = self.check_large(int(num))
+                embedResponse = discord.Embed(color=0x7A2F8F)
+                embedResponse.add_field(name= first + " to " + second + " Conversion", value= str(num) + " " + first + " = " + str(conversion) + " " + second, inline=False)
+                return embedResponse
+        else:
+            embedResponse = discord.Embed(color=0x7A2F8F)
+            embedResponse.add_field(name= "Error", value = "No data from CoinGecko", inline=False)
+            return embedResponse
         return embedResponse
 
     def get_supply(self, coin):
@@ -427,16 +441,20 @@ class discord_bot:
             return "e"
 
         data = self.cg.get_coin_by_id(id= coin_name)
+        print(data["market_data"])
         csupply = data["market_data"]["circulating_supply"]
+        tsupply = data["market_data"]["total_supply"]
         msupply = data["market_data"]["max_supply"]
 
         coin_name = self.change_cap(coin_name)
+        tsupply = self.check_large(tsupply)
         csupply = self.check_large(csupply)
         msupply = self.check_large(msupply)
 
         embedResponse = discord.Embed(color = 0x969C9F)
         embedResponse.add_field(name = coin_name + " Circulating Supply", value = csupply, inline=False)
-        embedResponse.add_field(name = coin_name + " Max Supply", value = msupply, inline=False!)
+        embedResponse.add_field(name = coin_name + " Total Supply", value = tsupply, inline=False)
+        embedResponse.add_field(name = coin_name + " Max Supply", value = msupply, inline=False)
         return embedResponse
 
     # find trending coins on coingecko
@@ -497,6 +515,8 @@ class discord_bot:
         return coin_label
 
     def check_large(self, num): #there are better ways but atm, its not important
+        if num == None:
+            return "None"
         letter = ""
         num = float(num)
         if num == 0:
@@ -573,8 +593,9 @@ class discord_bot:
         return response
 
     def error(self):
-        response = "Not a valid command/coin"
-        return response
+        embedResponse = discord.Embed(color=0xF93A2F)
+        embedResponse.add_field(name= "Error", value= "Not a valid command/coin", inline=False)
+        return embedResponse
 
     def find_member(self, bot, gld, mem_id):
         found_mem = None

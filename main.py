@@ -49,11 +49,11 @@ if __name__ == "__main__":
                     askar_member = member
                     askar_name = member.name
         # update the name to the price of bitcoin and the status to the price of eth
-        while not bot.is_closed():
+        while True:
             for bot_x in bot_list:
                 await bot_x.edit(nick = db.btc_status())
                 await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= db.eth_status()))
-            await asyncio.sleep(10)
+            await asyncio.sleep(20)
         # send askar alert if somehow this loop is closed out
         global last_fetch_time
         last_fetch_time = datetime.datetime.now()
@@ -121,22 +121,22 @@ if __name__ == "__main__":
                     if line_output == "":
                         await message.channel.send(file = discord.File('chart.png'))
                     else:
-                        await message.channel.send(db.error())
+                        await message.channel.send(embed = db.error())
                 elif len(str_divide) == 3:
                     line_output = db.get_line_chart(str_divide[1], "", str_divide[2], 1)
                     if line_output == "":
                         await message.channel.send(file = discord.File('chart.png'))
                     else:
-                        await message.channel.send(db.error())
+                        await message.channel.send(embed = db.error())
                 # if user doesn't specify num days, default to 30
                 elif len(str_divide) == 2:
                     line_output = db.get_line_chart(str_divide[1], "", "30", 1)
                     if line_output == "":
                         await message.channel.send(file = discord.File('chart.png'))
                     else:
-                        await message.channel.send(db.error())
+                        await message.channel.send(embed = db.error())
                 else:
-                    await message.channel.send(db.error())
+                    await message.channel.send(embed = db.error())
                     return
             # if user requests candle chart of a coin
             elif str_divide[0] == "candle":
@@ -147,7 +147,7 @@ if __name__ == "__main__":
                         embedImage.set_image(url="attachment://candle.png")
                         await message.channel.send(file = discord.File("candle.png"), embed = embedImage)
                     elif candle_output == "error":
-                        await message.channel.send(db.error())
+                        await message.channel.send(embed = db.error())
                     else:
                         await message.channel.send(candle_output)
                 # if user doesn't specify num days, default to 30
@@ -158,11 +158,11 @@ if __name__ == "__main__":
                         embedImage.set_image(url="attachment://candle.png")
                         await message.channel.send(file = discord.File("candle.png"), embed = embedImage)
                     elif candle_output == "error":
-                        await message.channel.send(db.error())
+                        await message.channel.send(embed = db.error())
                     else:
                         await message.channel.send(candle_output)
                 else:
-                    await message.channel.send(db.error())
+                    await message.channel.send(embed = db.error())
             # if user wants to check conversion rates
             elif str_divide[0] == "convert":
                 if len(str_divide) == 4 and str(str_divide[1]).isdigit():
@@ -170,28 +170,28 @@ if __name__ == "__main__":
                     if convert_output != "e":
                         await message.channel.send(embed = convert_output)
                     else:
-                        await message.channel.send(db.error())
+                        await message.channel.send(embed = db.error())
                 elif len(str_divide) == 3:
                     convert_output = db.get_conversion(1, str_divide[1], str_divide[2])
                     if convert_output != "e":
                         await message.channel.send(embed = convert_output)
                     else:
-                        await message.channel.send(db.error())
+                        await message.channel.send(embed = db.error())
                 else:
-                    await message.channel.send(db.error())
+                    await message.channel.send(embed = db.error())
             elif str_divide[0] == "supply":
                 supply_output = db.get_supply(str_divide[1])
                 if supply_output != "e":
                     await message.channel.send(embed = supply_output)
                 else:
-                    await message.channel.send(db.error())
+                    await message.channel.send(embed = db.error())
             # if user's request has more than one string, send error
             elif len(str_divide) > 1:
                 # ignores commands about coins
                 if str_divide[0] == "future" or str_divide[0] == "bought" or str_divide[0] == "sold" or str_divide[0] == "undo" or str_divide[0] == "rank":
                     pass
                 else:
-                    await message.channel.send(db.error())
+                    await message.channel.send(embed = db.error())
             elif len(str_divide) == 1:
                 # if user wants events
                 # if command == "events":
@@ -218,11 +218,11 @@ if __name__ == "__main__":
                 else:
                     result = db.get_coin_price(command)
                     if result == "":
-                        await message.channel.send(db.error())
+                        await message.channel.send(embed = db.error())
                     else:
                         await message.channel.send(embed = db.get_coin_price(command))
             else:
-                    await message.channel.send(db.error())
+                    await message.channel.send(embed = db.error())
 
     # run background task and bot indefintely
     bot.loop.create_task(background_task())
