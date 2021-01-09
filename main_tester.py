@@ -1,5 +1,6 @@
 import bot_ids
 import os
+import logging
 import bot_class_tester
 from bot_class_tester import discord_bot
 from dotenv import load_dotenv
@@ -23,6 +24,7 @@ if __name__ == "__main__":
     askar_member = None
     askar_name = ""
     last_fetch_time = ""
+    logging.basicConfig(filename="log_test.txt", level=logging.DEBUG)
 
     # load up the coingecko, etherscan, and discord api's
     load_dotenv()
@@ -50,8 +52,10 @@ if __name__ == "__main__":
         # update the name to the price of bitcoin and the status to the price of eth
         while not bot.is_closed():
             for bot_x in bot_list:
+                logging.info(db.cg.ping())
                 await bot_x.edit(nick = db.btc_status())
                 await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= db.eth_status()))
+                logging.info("Finished Updating Bot")
             await asyncio.sleep(10)
         # send askar alert if somehow this loop is closed out
         global last_fetch_time
@@ -215,6 +219,34 @@ if __name__ == "__main__":
                 elif command == 'global_defi':
                     await message.channel.send(db.get_global_defi_data())
                 # if user wants info about exchanges
+                elif command == 'grm_chart':
+                    db.get_gmr()
+                    embedResponse = discord.Embed(color=0x4E6F7B) #creates embed
+                    embedResponse.add_field(name= "Golden Ratio Multiple Chart", value = "Multiple: Ma_350 * (1.6, 2, 3, 5, 8, 13, 21)", inline=False)
+                    embedResponse.set_image(url="attachment://grm.png")
+                    await message.channel.send(file = discord.File("grm.png"), embed = embedResponse)
+                elif command == 'mvrv_chart':
+                    db.get_mvrv()
+                    embedResponse = discord.Embed(color=0x4E6F7B) #creates embed
+                    embedResponse.add_field(name= "MVRV Z-Score Chart", value = "Score: (Market_cap - realized_cap) / StdDev(Market_cap)", inline=False)
+                    embedResponse.set_image(url="attachment://mvrv.png")
+                    await message.channel.send(file = discord.File("mvrv.png"), embed = embedResponse)
+                elif command == 'puell_chart':
+                    db.get_puell()
+                    embedResponse = discord.Embed(color=0x4E6F7B) #creates embed
+                    embedResponse.add_field(name= "Puell Multiple Chart", value = "Multiple: Daily Coin Insurrance / MA_365 (Daily Coin Insurrance)", inline=False)
+                    embedResponse.set_image(url="attachment://puell.png")
+                    await message.channel.send(file = discord.File("puell.png"), embed = embedResponse)
+                elif command == 'pi_chart':
+                    # embedLoad = discord.Embed(color = 0x4E6F7B)
+                    # embedLoad.add_field(name = "Loading...", value = "Please wait a few seconds")
+                    # await message.channel.send(embed = embedLoad)
+                    db.get_pi()
+                    await msg.delete()
+                    embedResponse = discord.Embed(color=0x4E6F7B) #creates embed
+                    embedResponse.add_field(name= "Pi Cycle Top Indicator Chart", value = "Value: MA_365*2 and MA_111", inline=False)
+                    embedResponse.set_image(url="attachment://picycle.png")
+                    await message.channel.send(file = discord.File("picycle.png"), embed = embedResponse)
                 elif command == 'list-exchanges':
                     await message.channel.send(db.get_list_exchanges())
                 # if user wants info about any coin

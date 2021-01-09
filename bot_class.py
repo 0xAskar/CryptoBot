@@ -1,5 +1,6 @@
 import math
 import bot_ids
+import logging
 from math import log10, floor
 import requests
 import pandas as pd
@@ -16,6 +17,10 @@ import matplotlib.dates as mdates
 import mplfinance as mpf
 from pycoingecko import CoinGeckoAPI
 import etherscan
+from selenium import webdriver
+from time import sleep
+from selenium.webdriver.chrome.options import Options
+from PIL import Image
 
 class discord_bot:
     # api instance
@@ -24,6 +29,8 @@ class discord_bot:
         api_key=bot_ids.etherscan_api_key,
         cache_expire_after=5,
     )
+
+    logging.basicConfig(filename="log.log", level=logging.DEBUG)
 
     help =  "```CryptoBot gives you sends live updates of " + \
     "any cryptocurrency!" + "\n" + "\n" + \
@@ -36,9 +43,14 @@ class discord_bot:
     "   Suggestion Command: !suggestion do this' <suggestion> <message> - send a suggestion for the bot" + "\n" + "\n" + \
     "   Gas Command: '!gas' - get information about gwei prices" + "\n" + "\n" + \
     "   Convert Command: '!convert <num> <coin1> <coin2>' - get conversion rate of num of coin1 in number of coin2 (ex: !convert 1000 usdc btc)" + "\n" + "\n" + \
-    "   Global Defi Stats Command: '!global_defi' - get global information about defi" + "\n" + "\n" + \
+    "   Global Defi Stats Command: '!global-defi' - get global information about defi" + "\n" + "\n" + \
     "   Top Trending Coins Command: '!trendy - get the top trending coins on CoinGecko" + "\n" + "\n" + \
     "   Supply Command: '!supply <coin> - get the circulating and maximum supply of a coin" + "\n" + "\n" + \
+    "   Golden Ratio Multiple Indicator (BTC): '!grm-chart" + "\n" + "\n" + \
+    "   Puell Multiple Indicator (BTC): '!puell-chart" + "\n" + "\n" + \
+    "   MVRV Z-Score Indicator (BTC): '!mvrv-chart" + "\n" + "\n" + \
+    "   PI Cycle Top Indicator (BTC): '!pi-chart" + "\n" + "\n" + \
+
     "Credits to CoinGecko® for the free API!```"
 
 
@@ -50,8 +62,10 @@ class discord_bot:
         if price != None:
             price = round(price,2)
             response = "Bitcoin - $" + str(price)
+            logging.info("Logged BTC price at " + str(datetime.now()))
             return response
         else:
+            logging.warning("Error from CoinGecko at: " + str(datetime.now()))
             return "CoinGecko Error"
 
     def eth_status(self):
@@ -60,8 +74,10 @@ class discord_bot:
         if price != None:
             price = round(price,2)
             response = "Ethereum: $" + str(price)
+            logging.info("Logged ETH price at " + str(datetime.now()))
             return response
         else:
+            logging.warning("Error from CoinGecko at: " + str(datetime.now()))
             return "Coingecko Errors"
 
     def get_coin_price(self, coin_name):
@@ -363,6 +379,79 @@ class discord_bot:
         embedResponse.add_field(name = "Top Trending Coins on CoinGecko", value = output)
         return embedResponse
 
+    def get_gmr(self):
+        options = webdriver.ChromeOptions()
+        options.headless = True
+        options.add_argument('--headless')
+        options.add_argument('--disable-gpu')
+        options.add_argument("window-size=1024,768")
+        options.add_argument("--no-sandbox")
+        driver = webdriver.Chrome(executable_path = "/root/cryptobot/chromedriver", options = options)
+        driver.get("https://www.lookintobitcoin.com/charts/golden-ratio-multiplier/")
+        driver.execute_script("window.scrollTo(0, 260)")
+        sleep(5)
+        screenshot = driver.save_screenshot("grm.png")
+        img = Image.open("grm.png")
+        width, height = img.size
+        img = img.crop((50, 0, width-10, height-200))
+        img = img.save("grm.png", format = "png")
+        driver.quit()
+
+    def get_mvrv(self):
+        options = webdriver.ChromeOptions()
+        options.headless = True
+        options.add_argument('--headless')
+        options.add_argument('--disable-gpu')
+        options.add_argument("window-size=1024,768")
+        options.add_argument("--no-sandbox")
+        driver = webdriver.Chrome(executable_path = "/root/cryptobot/chromedriver", options = options)
+        driver.get("https://www.lookintobitcoin.com/charts/mvrv-zscore/")
+        driver.execute_script("window.scrollTo(0, 290)")
+        sleep(5)
+        screenshot = driver.save_screenshot("mvrv.png")
+        img = Image.open("mvrv.png")
+        width, height = img.size
+        img = img.crop((0, 0, width-10, height-205))
+        img = img.save("mvrv.png", format = "png")
+        driver.quit()
+
+    # The Puell Multiple Chart
+    def get_puell(self):
+        options = webdriver.ChromeOptions()
+        options.headless = True
+        options.add_argument('--headless')
+        options.add_argument('--disable-gpu')
+        options.add_argument("window-size=1024,768")
+        options.add_argument("--no-sandbox")
+        driver = webdriver.Chrome(executable_path = "/root/cryptobot/chromedriver", options = options)
+        driver.get("https://www.lookintobitcoin.com/charts/puell-multiple/")
+        driver.execute_script("window.scrollTo(0, 300)")
+        sleep(5)
+        screenshot = driver.save_screenshot("puell.png")
+        img = Image.open("puell.png")
+        width, height = img.size
+        img = img.crop((10, 0, width-10, height-220))
+        img = img.save("puell.png", format = "png")
+        driver.quit()
+
+    # The Pi Cycle Top Indicator
+    def get_pi(self):
+        options = webdriver.ChromeOptions()
+        options.headless = True
+        options.add_argument('--headless')
+        options.add_argument('--disable-gpu')
+        options.add_argument("window-size=1024,768")
+        options.add_argument("--no-sandbox")
+        driver = webdriver.Chrome(executable_path = "/root/cryptobot/chromedriver", options = options)
+        driver.get("https://www.lookintobitcoin.com/charts/pi-cycle-top-indicator/")
+        driver.execute_script("window.scrollTo(0, 270)")
+        sleep(5)
+        screenshot = driver.save_screenshot("picycle.png")
+        img = Image.open("picycle.png")
+        width, height = img.size
+        img = img.crop((10, 0, width-10, height-205))
+        img = img.save("picycle.png", format = "png")
+        driver.quit()
     # functions to check coins, names, and size
 
     # round numbers correctly, sig figs for <1, rounding for >1

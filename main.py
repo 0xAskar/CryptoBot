@@ -5,13 +5,13 @@ from bot_class import discord_bot
 from dotenv import load_dotenv
 import asyncio
 import discord
+import logging
 import datetime
 from discord.ext import tasks, commands
 from discord.ext.tasks import loop
 from discord.ext import commands
 
 load_dotenv()
-
 
 if __name__ == "__main__":
     # main variables
@@ -24,6 +24,7 @@ if __name__ == "__main__":
     askar_member = None
     askar_name = ""
     last_fetch_time = ""
+    logging.basicConfig(filename="log.log", level=logging.DEBUG)
 
     # load up the coingecko, etherscan, and discord api's
     load_dotenv()
@@ -49,10 +50,12 @@ if __name__ == "__main__":
                     askar_member = member
                     askar_name = member.name
         # update the name to the price of bitcoin and the status to the price of eth
-        while True:
+        while not bot.is_closed():
             for bot_x in bot_list:
+                logging.info(db.cg.ping())
                 await bot_x.edit(nick = db.btc_status())
                 await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= db.eth_status()))
+                logging.info("Finished Updating Bot")
             await asyncio.sleep(20)
         # send askar alert if somehow this loop is closed out
         global last_fetch_time
@@ -85,6 +88,7 @@ if __name__ == "__main__":
     @bot.event
     async def on_message(message):
         # retrieve message
+        print("Message: " + str(message.content))
         info = message.content
         command = ""
         info = info.lower()
@@ -96,6 +100,8 @@ if __name__ == "__main__":
             #  parse out "!", and separate into string array
             command = info[1:]
             str_divide = command.split()
+            if len(str_divide) < 1:
+                return
             # if user asks for help on commands
             if command == "crypto-help":
                 response = db.help
@@ -209,11 +215,35 @@ if __name__ == "__main__":
                 elif command == 'future':
                     await message.channel.send(db.future())
                 # if user wants info about global defi stats
-                elif command == 'global_defi':
+                elif command == 'global-defi':
                     await message.channel.send(db.get_global_defi_data())
                 # if user wants info about exchanges
                 elif command == 'list-exchanges':
                     await message.channel.send(db.get_list_exchanges())
+                elif command == 'grm-chart':
+                    db.get_gmr()
+                    embedResponse = discord.Embed(color=0x4E6F7B) #creates embed
+                    embedResponse.add_field(name= "Golden Ratio Multiple Chart", value = "Multiple: Ma_350 * (1.6, 2, 3, 5, 8, 13, 21)", inline=False)
+                    embedResponse.set_image(url="attachment://grm.png")
+                    await message.channel.send(file = discord.File("grm.png"), embed = embedResponse)
+                elif command == 'mvrv-chart':
+                    db.get_mvrv()
+                    embedResponse = discord.Embed(color=0x4E6F7B) #creates embed
+                    embedResponse.add_field(name= "MVRV Z-Score ", value = "Score: (Market_cap - realized_cap) / StdDev(Market_cap)", inline=False)
+                    embedResponse.set_image(url="attachment://mvrv.png")
+                    await message.channel.send(file = discord.File("mvrv.png"), embed = embedResponse)
+                elif command == 'puell-chart':
+                    db.get_puell()
+                    embedResponse = discord.Embed(color=0x4E6F7B) #creates embed
+                    embedResponse.add_field(name= "Puell Multiple Chart", value = "Multiple: Daily Coin Insurrance / MA_365 (Daily Coin Insurrance)", inline=False)
+                    embedResponse.set_image(url="attachment://puell.png")
+                    await message.channel.send(file = discord.File("puell.png"), embed = embedResponse)
+                elif command == 'pi-chart':
+                    db.get_pi()
+                    embedResponse = discord.Embed(color=0x4E6F7B) #creates embed
+                    embedResponse.add_field(name= "Pi Cycle Top Indicator Chart", value = "Value: MA_365*2 and MA_111", inline=False)
+                    embedResponse.set_image(url="attachment://picycle.png")
+                    await message.channel.send(file = discord.File("picycle.png"), embed = embedResponse)
                 # if user wants info about any coin
                 else:
                     result = db.get_coin_price(command)

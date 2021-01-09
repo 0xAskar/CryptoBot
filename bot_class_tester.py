@@ -1,5 +1,6 @@
 import math
 import bot_ids
+import logging
 from math import log10, floor
 import requests
 import pandas as pd
@@ -16,6 +17,10 @@ import matplotlib.dates as mdates
 import mplfinance as mpf
 from pycoingecko import CoinGeckoAPI
 import etherscan
+from selenium import webdriver
+from time import sleep
+from selenium.webdriver.chrome.options import Options
+from PIL import Image
 
 class discord_bot:
     # api instance
@@ -24,6 +29,7 @@ class discord_bot:
         api_key= bot_ids.etherscan_api_key,
         cache_expire_after=5,
     )
+    logging.basicConfig(filename='log_test.txt', level=logging.DEBUG)
 
     # functions to gather btc, eth, and any coins price
     def btc_status(self):
@@ -32,8 +38,10 @@ class discord_bot:
         if price != None:
             price = round(price,2)
             response = "Bitcoin - $" + str(price)
+            logging.info("Logged BTC price at " + str(datetime.now()))
             return response
         else:
+            logging.warning("Error from CoinGecko at: " + str(datetime.now()))
             return "CoinGecko Error"
 
     def eth_status(self):
@@ -42,8 +50,10 @@ class discord_bot:
         if price != None:
             price = round(price,2)
             response = "Ethereum: $" + str(price)
+            logging.info("Logged ETH price at " + str(datetime.now()))
             return response
         else:
+            logging.warning("Error from CoinGecko at: " + str(datetime.now()))
             return "Coingecko Errors"
 
     def get_coin_price(self, coin_name):
@@ -470,7 +480,65 @@ class discord_bot:
         embedResponse.add_field(name = "Top Trending Coins on CoinGecko", value = output)
         return embedResponse
 
+    # Golden Ratio Multiple Chart
+    def get_gmr(self):
+        options = webdriver.ChromeOptions()
+        options.headless = True
+        driver = webdriver.Chrome(executable_path = "/Users/askar/Documents/Bots/CryptoBot/chromedriver", options = options)
+        driver.get("https://www.lookintobitcoin.com/charts/golden-ratio-multiplier/")
+        driver.execute_script("window.scrollTo(0, 260)")
+        sleep(5)
+        screenshot = driver.save_screenshot("grm.png")
+        img = Image.open("grm.png")
+        width, height = img.size
+        img = img.crop((50, 0, width-10, height-10))
+        img = img.save("grm.png", format = "png")
+        driver.quit()
 
+    # MVRV Z-Score Chart
+    def get_mvrv(self):
+        options = webdriver.ChromeOptions()
+        options.headless = True
+        driver = webdriver.Chrome(executable_path = "/Users/askar/Documents/Bots/CryptoBot/chromedriver", options = options)
+        driver.get("https://www.lookintobitcoin.com/charts/mvrv-zscore/")
+        driver.execute_script("window.scrollTo(0, 290)")
+        sleep(5)
+        screenshot = driver.save_screenshot("mvrv.png")
+        img = Image.open("mvrv.png")
+        width, height = img.size
+        img = img.crop((0, 0, width-10, height-20))
+        img = img.save("mvrv.png", format = "png")
+        driver.quit()
+
+    # The Puell Multiple Chart
+    def get_puell(self):
+        options = webdriver.ChromeOptions()
+        options.headless = True
+        driver = webdriver.Chrome(executable_path = "/Users/askar/Documents/Bots/CryptoBot/chromedriver", options = options)
+        driver.get("https://www.lookintobitcoin.com/charts/puell-multiple/")
+        driver.execute_script("window.scrollTo(0, 300)")
+        sleep(5)
+        screenshot = driver.save_screenshot("puell.png")
+        img = Image.open("puell.png")
+        width, height = img.size
+        img = img.crop((10, 0, width-10, height-30))
+        img = img.save("puell.png", format = "png")
+        driver.quit()
+
+    # The Pi Cycle Top Indicator
+    def get_pi(self):
+        options = webdriver.ChromeOptions()
+        options.headless = True
+        driver = webdriver.Chrome(executable_path = "/Users/askar/Documents/Bots/CryptoBot/chromedriver", options = options)
+        driver.get("https://www.lookintobitcoin.com/charts/pi-cycle-top-indicator/")
+        driver.execute_script("window.scrollTo(0, 270)")
+        sleep(5)
+        screenshot = driver.save_screenshot("picycle.png")
+        img = Image.open("picycle.png")
+        width, height = img.size
+        img = img.crop((10, 0, width-10, height-30))
+        img = img.save("picycle.png", format = "png")
+        driver.quit()
     # functions to check coins, names, and size: helper functions
 
     # round numbers correctly, sig figs for <1, rounding for >1
