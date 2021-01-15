@@ -36,7 +36,7 @@ if __name__ == "__main__":
     print(db.cg.ping())
     # main functions that need to run
 
-    @bot.event
+    @loop(seconds=10.0)
     async def background_task():
         await bot.wait_until_ready()
         bot_list = []
@@ -50,19 +50,13 @@ if __name__ == "__main__":
                     askar_member = member
                     askar_name = member.name
         # update the name to the price of bitcoin and the status to the price of eth
-        while not bot.is_closed():
-            for bot_x in bot_list:
-                logging.info(db.cg.ping())
-                await bot_x.edit(nick = db.btc_status())
-                await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= db.eth_status()))
-                logging.info("Finished Updating Bot")
-            await asyncio.sleep(20)
-        # send askar alert if somehow this loop is closed out
+        logging.info(db.cg.ping())
+        for bot_x in bot_list:
+            await bot_x.edit(nick = db.btc_status())
+            await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= db.eth_status()))
+        logging.info("Finished Updating Bot")
         global last_fetch_time
         last_fetch_time = datetime.datetime.now()
-        user = db.find_member(bot, guild_p, askar_id)
-        await user.send(last_fetch_time)
-
 
     @bot.event
     async def on_ready():
@@ -88,7 +82,6 @@ if __name__ == "__main__":
     @bot.event
     async def on_message(message):
         # retrieve message
-        print("Message: " + str(message.content))
         info = message.content
         command = ""
         info = info.lower()
@@ -109,7 +102,7 @@ if __name__ == "__main__":
                 await suggester.send(response)
                 await message.add_reaction('\N{THUMBS UP SIGN}')
             # if user wants to send a suggestion
-            elif str_divide[0] == "suggestion":
+            elif str_divide[0] == "suggestion" or str_divide[0] == "suggestions":
                 if len(str_divide) > 1:
                     user = db.find_member(bot, guild_p, askar_id)
                     suggester = db.find_member(bot, guild_p, message.author.id)
@@ -199,6 +192,8 @@ if __name__ == "__main__":
                 else:
                     await message.channel.send(embed = db.error())
             elif len(str_divide) == 1:
+                if command == "uni":
+                    command = "uniswap"
                 # if user wants events
                 # if command == "events":
                 #     await message.channel.send(db.get_events())
@@ -255,5 +250,5 @@ if __name__ == "__main__":
                     await message.channel.send(embed = db.error())
 
     # run background task and bot indefintely
-    bot.loop.create_task(background_task())
+    background_task.start()
     bot.run(bot_token)

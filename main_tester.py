@@ -24,6 +24,8 @@ if __name__ == "__main__":
     askar_member = None
     askar_name = ""
     last_fetch_time = ""
+    count = 0
+    guild_p = "/r/Pennystocks"
     logging.basicConfig(filename="log_test.txt", level=logging.DEBUG)
 
     # load up the coingecko, etherscan, and discord api's
@@ -36,7 +38,7 @@ if __name__ == "__main__":
     print(db.cg.ping())
     # main functions that need to run
 
-    @bot.event
+    @loop(seconds=10.0)
     async def background_task():
         await bot.wait_until_ready()
         bot_list = []
@@ -50,14 +52,18 @@ if __name__ == "__main__":
                     askar_member = member
                     askar_name = member.name
         # update the name to the price of bitcoin and the status to the price of eth
-        while not bot.is_closed():
-            for bot_x in bot_list:
-                logging.info(db.cg.ping())
-                await bot_x.edit(nick = db.btc_status())
-                await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= db.eth_status()))
-                logging.info("Finished Updating Bot")
-            await asyncio.sleep(10)
+        # while not bot.is_closed():
+        #     for bot_x in bot_list:
+        logging.info(db.cg.ping())
+        # await bot_x.edit(nick = db.btc_status())
+        global count
+        for bot_x in bot_list:
+            await bot_x.edit(nick = count)
+            await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= db.eth_status()))
+        logging.info("Finished Updating Bot")
+        # await asyncio.sleep(10)
         # send askar alert if somehow this loop is closed out
+        count += 1
         global last_fetch_time
         last_fetch_time = datetime.datetime.now()
         user = db.find_member(bot, guild_p, askar_id)
@@ -260,5 +266,5 @@ if __name__ == "__main__":
                     await message.channel.send(embed = db.error())
 
     # run background task and bot indefintely
-    bot.loop.create_task(background_task())
+    background_task.start()
     bot.run(bot_token)

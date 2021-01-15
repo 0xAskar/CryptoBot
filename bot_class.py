@@ -40,7 +40,7 @@ class discord_bot:
     "   Chart Command: '!chart btc 5' <chart> <coin1> <coin2> <num days> - retreive the line chart of two coins coupled (ex: !chart link btc 30)" + "\n" + "\n" + \
     "   Candle Command: '!candle btc 5' <chart> <coin_name/symbol> <num days>, "\
     "days has to be one of these:" + "\n" + "   '1','7','14','30','90','180','365','MAX' - retreive the candle chart of a coin" + "\n" + "\n" + \
-    "   Suggestion Command: !suggestion do this' <suggestion> <message> - send a suggestion for the bot" + "\n" + "\n" + \
+    "   Suggestion Command: !suggestion or !suggestions do this' <suggestion> <message> - send a suggestion for the bot" + "\n" + "\n" + \
     "   Gas Command: '!gas' - get information about gwei prices" + "\n" + "\n" + \
     "   Convert Command: '!convert <num> <coin1> <coin2>' - get conversion rate of num of coin1 in number of coin2 (ex: !convert 1000 usdc btc)" + "\n" + "\n" + \
     "   Global Defi Stats Command: '!global-defi' - get global information about defi" + "\n" + "\n" + \
@@ -50,7 +50,6 @@ class discord_bot:
     "   Puell Multiple Indicator (BTC): '!puell-chart" + "\n" + "\n" + \
     "   MVRV Z-Score Indicator (BTC): '!mvrv-chart" + "\n" + "\n" + \
     "   PI Cycle Top Indicator (BTC): '!pi-chart" + "\n" + "\n" + \
-
     "Credits to CoinGecko® for the free API!```"
 
 
@@ -472,6 +471,8 @@ class discord_bot:
     def check_coin(self, coin_name):
         coin_label = ""
         coin_name = coin_name.lower()
+        if coin_name == "uni":
+            coin_name = "uniswap"
         for coin in self.cg.get_coins_list():
             if coin['id'] == coin_name or coin['symbol'] == coin_name:
                 if coin['symbol'] == coin_name:
