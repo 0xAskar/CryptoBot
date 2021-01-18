@@ -51,12 +51,16 @@ if __name__ == "__main__":
                     askar_name = member.name
         # update the name to the price of bitcoin and the status to the price of eth
         logging.info(db.cg.ping())
-        for bot_x in bot_list:
-            await bot_x.edit(nick = db.btc_status())
-            await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= db.eth_status()))
-        logging.info("Finished Updating Bot")
-        global last_fetch_time
-        last_fetch_time = datetime.datetime.now()
+        try:
+            for bot_x in bot_list:
+                await bot_x.edit(nick = db.btc_status())
+                await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= db.eth_status()))
+            logging.info("Finished Updating Bot")
+            global last_fetch_time
+            last_fetch_time = datetime.datetime.now()
+        except:
+            print("Unsuspected error")
+            print(datetime.datetime.now())
 
     @bot.event
     async def on_ready():

@@ -10,6 +10,7 @@ import datetime
 from discord.ext import tasks, commands
 from discord.ext.tasks import loop
 from discord.ext import commands
+import sys
 
 load_dotenv()
 
@@ -57,17 +58,22 @@ if __name__ == "__main__":
         logging.info(db.cg.ping())
         # await bot_x.edit(nick = db.btc_status())
         global count
-        for bot_x in bot_list:
-            await bot_x.edit(nick = count)
-            await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= db.eth_status()))
-        logging.info("Finished Updating Bot")
+        try:
+            for bot_x in bot_list:
+                await bot_x.edit(nick = count)
+                await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= db.eth_status()))
+            logging.info("Finished Updating Bot")
+            count += 1
+            global last_fetch_time
+            last_fetch_time = datetime.datetime.now()
+            user = db.find_member(bot, guild_p, askar_id)
+            await user.send(last_fetch_time)
+        except:
+            print("Unsuspected error")
+            print(datetime.datetime.now())
         # await asyncio.sleep(10)
         # send askar alert if somehow this loop is closed out
-        count += 1
-        global last_fetch_time
-        last_fetch_time = datetime.datetime.now()
-        user = db.find_member(bot, guild_p, askar_id)
-        await user.send(last_fetch_time)
+
 
 
     @bot.event

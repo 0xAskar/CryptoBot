@@ -90,18 +90,24 @@ class discord_bot:
                 price = round(price,3)
                 price = "{:,}".format(price)
                 percent_change = price_data[coin_label]['usd_24h_change']
-                percent_change = round(percent_change, 2)
+                if percent_change != None:
+                    percent_change = str(round(percent_change, 2)) + "%"
+                else:
+                    percent_change = None
                 market_cap = price_data[coin_label]['usd_market_cap']
                 market_cap = round(market_cap, 2)
                 market_cap = self.check_large(market_cap)
-                mc = market_cap
+                if market_cap != "Not Found":
+                    mc = "$" + market_cap
+                else:
+                    mc = market_cap
                 # market_cap = "{:,}".format(market_cap)
                 coin_name = self.change_cap(coin_name)
                 # embedResponse = discord.Embed(title=coin_name + " Info", color=0xFF8C00)
                 embedResponse = discord.Embed(color=0xFF8C00)
                 embedResponse.add_field(name= coin_name + " Price", value= "$" + str(price), inline=False)
-                embedResponse.add_field(name= coin_name + " Percent Change (24hr)", value= str(percent_change) + "%", inline=False)
-                embedResponse.add_field(name= coin_name + " Market Cap", value= "$" + mc, inline=False)
+                embedResponse.add_field(name= coin_name + " Percent Change (24hr)", value= str(percent_change), inline=False)
+                embedResponse.add_field(name= coin_name + " Market Cap", value= mc, inline=False)
                 response1 = "```" + coin_name + "'s price: $" + str(price) + "\n" + "Percent Change (24h): " + str(percent_change) + "%" + "\n" + "Market Cap: $" + str(market_cap) + "```"
                 # response2 = "```" + coin_name + "'s price: $" + str(price) + ", " + "Percent Change (24h): " + str(percent_change) + "%" + "\n" + "Market Cap: $" + str(market_cap) + "```"
                 return embedResponse
