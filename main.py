@@ -24,7 +24,8 @@ if __name__ == "__main__":
     askar_member = None
     askar_name = ""
     last_fetch_time = ""
-    logging.basicConfig(filename="log.log", level=logging.DEBUG)
+    last_contract = "tst"
+    logging.basicConfig(filename="log.log", level=logging.INFO)
 
     # load up the coingecko, etherscan, and discord api's
     load_dotenv()
@@ -36,22 +37,23 @@ if __name__ == "__main__":
     print(db.cg.ping())
     # main functions that need to run
 
-    @loop(seconds=10.0)
+    @loop(seconds=20.0)
     async def background_task():
-        await bot.wait_until_ready()
-        bot_list = []
-        for guild in bot.guilds:
-            for member in guild.members:
-                if member.id == bot_id:
-                    bot_member = member
-                    bot_name = member.name
-                    bot_list.append(bot_member)
-                if member.id == askar_id:
-                    askar_member = member
-                    askar_name = member.name
-        # update the name to the price of bitcoin and the status to the price of eth
-        logging.info(db.cg.ping())
         try:
+            await bot.wait_until_ready()
+            bot_list = []
+            for guild in bot.guilds:
+                for member in guild.members:
+                    if member.id == bot_id:
+                        bot_member = member
+                        bot_name = member.name
+                        bot_list.append(bot_member)
+                    if member.id == askar_id:
+                        askar_member = member
+                        askar_name = member.name
+            # update the name to the price of bitcoin and the status to the price of eth
+            logging.info(db.cg.ping())
+            # update all the bot in each server
             for bot_x in bot_list:
                 await bot_x.edit(nick = db.btc_status())
                 await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= db.eth_status()))
@@ -78,8 +80,8 @@ if __name__ == "__main__":
                 if member.id == askar_id:
                     askar_member = member
                     askar_name = member.name
-        for bot_x in bot_names:
-            print(f'{bot_x} has connected to Discord!')
+        bot_count = 0
+        print(f"{bot_names[0]} (x" + str(len(bot_names)) + ") has connected to Discord!")
         global last_fetch_time
         last_fetch_time = datetime.datetime.now()
 
@@ -216,6 +218,27 @@ if __name__ == "__main__":
                 # if user wants info about global defi stats
                 elif command == 'global-defi':
                     await message.channel.send(db.get_global_defi_data())
+                elif command == "defisocks":
+                    # results = db.get_defisocks()
+                    # print(len(results))
+                    # last_trxn = results[-1]
+                    # last_hash = last_trxn["hash"]
+                    # global last_contract
+                    # output_message = ""
+                    # if last_hash != last_contract:
+                    #     print("Current Hash: " + last_contract)
+                    #     print("New Hash: " + last_hash)
+                    #     output_message = "Change!"
+                    #     last_contract = last_hash
+                    # else:
+                    #     output_message = "no change"
+                    # await message.channel.send(output_message)
+                    await message.channel.send("Loading...")
+                    db.get_ds()
+                    embedResponse = discord.Embed(color=0x4E6F7B) #creates embed
+                    embedResponse.add_field(name= "Defisocks", value = "Price and Supply of Defisocks", inline=False)
+                    embedResponse.set_image(url="attachment://ds.png")
+                    await message.channel.send(file = discord.File("ds.png"), embed = embedResponse)
                 # if user wants info about exchanges
                 elif command == 'list-exchanges':
                     await message.channel.send(db.get_list_exchanges())

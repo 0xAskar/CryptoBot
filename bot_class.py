@@ -30,7 +30,7 @@ class discord_bot:
         cache_expire_after=5,
     )
 
-    logging.basicConfig(filename="log.log", level=logging.DEBUG)
+    logging.basicConfig(filename="log.log", level=logging.INFO)
 
     help =  "```CryptoBot gives you sends live updates of " + \
     "any cryptocurrency!" + "\n" + "\n" + \
@@ -457,6 +457,38 @@ class discord_bot:
         img = img.crop((10, 0, width-10, height-205))
         img = img.save("picycle.png", format = "png")
         driver.quit()
+
+    def get_ds(self):
+        options = webdriver.ChromeOptions()
+        options.headless = True
+        options.add_argument('--headless')
+        options.add_argument('--disable-gpu')
+        options.add_argument("window-size=1024,768")
+        options.add_argument("--no-sandbox")
+        driver = webdriver.Chrome(executable_path = "/root/cryptobot/chromedriver", options = options)
+        driver.get("https://www.defisocks.com/#/")
+        last_height = driver.execute_script("return document.body.scrollHeight")
+        for i in range(0,2):
+            # Scroll down to bottom
+            if i == 1:
+                driver.execute_script("window.scrollTo(0, 3350);")
+            # Wait to load page
+            sleep(5)
+            # Calculate new scroll height and compare with last scroll height
+            new_height = driver.execute_script("return document.body.scrollHeight")
+            if new_height == last_height:
+                break
+            last_height = new_height
+        screenshot = driver.save_screenshot("ds.png")
+        img = Image.open("ds.png")
+        width, height = img.size
+        img = img.crop((320, 125, width-340, height-100))
+        img = img.save("ds.png", format = "png")
+        driver.quit()
+
+    def get_defisocks(self):
+        results = self.es.get_token_transactions(contract_address = "0x9d942bd31169ed25a1ca78c776dab92de104e50e")
+        return results
     # functions to check coins, names, and size
 
     # round numbers correctly, sig figs for <1, rounding for >1
@@ -479,6 +511,8 @@ class discord_bot:
         coin_name = coin_name.lower()
         if coin_name == "uni":
             coin_name = "uniswap"
+        elif coin_name == "graph" or coin_name == "thegraph":
+            coin_name = "the-graph"
         for coin in self.cg.get_coins_list():
             if coin['id'] == coin_name or coin['symbol'] == coin_name:
                 if coin['symbol'] == coin_name:

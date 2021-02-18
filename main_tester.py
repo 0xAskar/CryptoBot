@@ -27,6 +27,7 @@ if __name__ == "__main__":
     last_fetch_time = ""
     count = 0
     guild_p = "/r/Pennystocks"
+    last_contract = "tst"
     logging.basicConfig(filename="log_test.txt", level=logging.DEBUG)
 
     # load up the coingecko, etherscan, and discord api's
@@ -57,6 +58,17 @@ if __name__ == "__main__":
         #     for bot_x in bot_list:
         logging.info(db.cg.ping())
         # await bot_x.edit(nick = db.btc_status())
+        # specific_channel = db.get_channel(802586307766779904)
+        # global last_contract
+        # print("before " + last_contract)
+        # latest_contract = db.get_defisocks()
+        # lastone = latest_contract[len(latest_contract)-1]
+        # print("latest: " + lastone["hash"])
+        # if last_contract != latest_contract:
+        #     print("in now")
+        #     await bot.channel.send("CHANGE")
+        #     print('sent')
+        #     last_contract = latest_contract
         global count
         try:
             for bot_x in bot_list:
@@ -66,8 +78,9 @@ if __name__ == "__main__":
             count += 1
             global last_fetch_time
             last_fetch_time = datetime.datetime.now()
-            user = db.find_member(bot, guild_p, askar_id)
-            await user.send(last_fetch_time)
+            # user = db.find_member(bot, guild_p, askar_id)
+            # await user.send(last_fetch_time)
+
         except:
             print("Unsuspected error")
             print(datetime.datetime.now())
@@ -100,6 +113,14 @@ if __name__ == "__main__":
             # print(x)
         global last_fetch_time
         last_fetch_time = datetime.datetime.now()
+        output = db.cg.get_coin_by_id(id= 'bitcoin')
+        trxn = db.get_defisocks()
+        eth_balance = db.es.get_eth_balance('0x9d942bd31169ed25a1ca78c776dab92de104e50e')
+        print(eth_balance)
+        # for trx in trxn:
+        #     print("\n")
+        #     print(trx)
+        # print(output["description"])
 
     @bot.event
     async def on_message(message):
@@ -227,7 +248,33 @@ if __name__ == "__main__":
                     await message.channel.send(embed = db.get_trending())
                 elif command == 'future':
                     await message.channel.send(db.future())
+                elif command == "defisocks":
+                    # results = db.get_defisocks()
+                    # print(len(results))
+                    # last_trxn = results[-1]
+                    # last_hash = last_trxn["hash"]
+                    # global last_contract
+                    # output_message = ""
+                    # if last_hash != last_contract:
+                    #     print("Current Hash: " + last_contract)
+                    #     print("New Hash: " + last_hash)
+                    #     output_message = "Change!"
+                    #     last_contract = last_hash
+                    # else:
+                    #     output_message = "no change"
+                    # await message.channel.send(output_message)
                 # if user wants info about global defi stats
+                    await message.channel.send("Loading...")
+                    db.get_ds()
+                    embedResponse = discord.Embed(color=0x4E6F7B) #creates embed
+                    embedResponse.add_field(name= "Defisocks", value = "Price and Supply of Defisocks", inline=False)
+                    embedResponse.set_image(url="attachment://ds.png")
+                    await message.channel.send(file = discord.File("ds.png"), embed = embedResponse)
+                elif command == "list-coins":
+                    list = db.cg.get_coins_list()
+                    print(list)
+                    await message.channel.send(list[0:1998])
+                    await message.channel.send(list[1999:390])
                 elif command == 'global_defi':
                     await message.channel.send(db.get_global_defi_data())
                 # if user wants info about exchanges
