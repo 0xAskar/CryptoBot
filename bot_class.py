@@ -473,7 +473,7 @@ class discord_bot:
             if i == 1:
                 driver.execute_script("window.scrollTo(0, 3350);")
             # Wait to load page
-            sleep(5)
+            sleep(4)
             # Calculate new scroll height and compare with last scroll height
             new_height = driver.execute_script("return document.body.scrollHeight")
             if new_height == last_height:

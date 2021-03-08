@@ -127,12 +127,20 @@ if __name__ == "__main__":
                         await message.channel.send(file = discord.File('chart.png'))
                     else:
                         await message.channel.send(embed = db.error())
+                # check for default and also make default for chart coin1 coin2
                 elif len(str_divide) == 3:
-                    line_output = db.get_line_chart(str_divide[1], "", str_divide[2], 1)
-                    if line_output == "":
-                        await message.channel.send(file = discord.File('chart.png'))
+                    if str_divide[2].isdigit():
+                        line_output = db.get_line_chart(str_divide[1], "", str_divide[2], 1)
+                        if line_output == "":
+                            await message.channel.send(file = discord.File('chart.png'))
+                        else:
+                            await message.channel.send(embed = db.error())
                     else:
-                        await message.channel.send(embed = db.error())
+                        line_dual_output = db.get_line_chart(str_divide[1], str_divide[2], "30", 2)
+                        if line_dual_output == "":
+                            await message.channel.send(file = discord.File('chart.png'))
+                        else:
+                            await message.channel.send(embed = db.error())
                 # if user doesn't specify num days, default to 30
                 elif len(str_divide) == 2:
                     line_output = db.get_line_chart(str_divide[1], "", "30", 1)

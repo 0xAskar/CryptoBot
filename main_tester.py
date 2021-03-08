@@ -113,14 +113,11 @@ if __name__ == "__main__":
             # print(x)
         global last_fetch_time
         last_fetch_time = datetime.datetime.now()
-        output = db.cg.get_coin_by_id(id= 'bitcoin')
-        trxn = db.get_defisocks()
-        eth_balance = db.es.get_eth_balance('0x9d942bd31169ed25a1ca78c776dab92de104e50e')
-        print(eth_balance)
-        # for trx in trxn:
-        #     print("\n")
-        #     print(trx)
-        # print(output["description"])
+        exchanges = db.cg.get_exchanges_id_name_list()
+        volume = db.cg.get_exchanges_volume_chart_by_id(id = "binance", days = "14")
+        print(volume)
+
+
 
     @bot.event
     async def on_message(message):
@@ -162,12 +159,20 @@ if __name__ == "__main__":
                         await message.channel.send(file = discord.File('chart.png'))
                     else:
                         await message.channel.send(embed = db.error())
+                # check for default and also make default for chart coin1 coin2
                 elif len(str_divide) == 3:
-                    line_output = db.get_line_chart(str_divide[1], "", str_divide[2], 1)
-                    if line_output == "":
-                        await message.channel.send(file = discord.File('chart.png'))
+                    if str_divide[2].isdigit():
+                        line_output = db.get_line_chart(str_divide[1], "", str_divide[2], 1)
+                        if line_output == "":
+                            await message.channel.send(file = discord.File('chart.png'))
+                        else:
+                            await message.channel.send(embed = db.error())
                     else:
-                        await message.channel.send(embed = db.error())
+                        line_dual_output = db.get_line_chart(str_divide[1], str_divide[2], "30", 2)
+                        if line_dual_output == "":
+                            await message.channel.send(file = discord.File('chart.png'))
+                        else:
+                            await message.channel.send(embed = db.error())
                 # if user doesn't specify num days, default to 30
                 elif len(str_divide) == 2:
                     line_output = db.get_line_chart(str_divide[1], "", "30", 1)

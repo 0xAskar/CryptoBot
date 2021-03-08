@@ -412,6 +412,43 @@ class discord_bot:
         else:
             return "error"
 
+    # add volume charts TODO
+    def get_volume_chart(self, num_days):
+        # list of exchanges
+        exchange_ids = ["binance", "gdax", "uniswap"]
+        exchange_names = ["Binance", "Coinbase Pro", "Uniswap"]
+        volumes = []
+        # get exchange data and input into volume list
+        for ex in exchange_ids:
+            volumes.append(cg.get_exchanges_volume_chart_by_id(id = ex, days = num_days))
+        plt.clf()
+        x_vals = []
+        y_vals = []
+        count = 0
+        binance, gdax, uniswap = [], [], []
+        output_volumes = [binance, gdax, uniswap]
+        # find minimum for number of datapoints
+        min = len(volumes[0])
+        for vol in volumes:
+            if len(vol) < min:
+                min = len(vol)
+        # now enter the datapoints into column
+        for vol, output in zip(volumes, output):
+            for point in vol:
+                if count == 0:
+                    time_conv = datetime.utcfromtimestamp(point[0] / 1000).strftime('%Y-%m-%d')
+                    time1 = datetime.utcfromtimestamp(point[0] / 1000).strftime('%Y-%m-%d %H:%M:%S')
+                if count == 1:
+                    time2 = datetime.utcfromtimestamp(point[0] / 1000).strftime('%Y-%m-%d %H:%M:%S')
+                if count == min-1:
+                    time_end = datetime.utcfromtimestamp(point[0] / 1000).strftime('%Y-%m-%d')
+                x_vals.append(time_conv)
+                output.append(point[1])
+                count += 1
+                if count == min:
+                    break
+        print(output)
+
     def get_conversion(self, num, first, second):
         first_coin = ""
         second_coin = ""
@@ -551,7 +588,7 @@ class discord_bot:
             if i == 1:
                 driver.execute_script("window.scrollTo(0, 3800);")
             # Wait to load page
-            sleep(5)
+            sleep(4)
             # Calculate new scroll height and compare with last scroll height
             new_height = driver.execute_script("return document.body.scrollHeight")
             if new_height == last_height:
