@@ -87,7 +87,12 @@ class discord_bot:
             price_data = self.cg.get_price(ids= coin_label, vs_currencies='usd', include_24hr_change='true', include_market_cap = 'true')
             price = price_data[coin_label]['usd']
             if price != None:
-                price = round(price,3)
+                if float(price) < 0.001:
+                    price = round(price, 5)
+                elif float(price) < 0.01:
+                    price = round(price, 4)
+                else:
+                    price = round(price,3)
                 price = "{:,}".format(price)
                 percent_change = price_data[coin_label]['usd_24h_change']
                 if percent_change != None:

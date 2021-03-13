@@ -64,7 +64,12 @@ class discord_bot:
             price_data = self.cg.get_price(ids= coin_label, vs_currencies='usd', include_24hr_change='true', include_market_cap = 'true')
             price = price_data[coin_label]['usd']
             if price != None:
-                price = round(price,3)
+                if float(price) < 0.001:
+                    price = round(price, 5)
+                elif float(price) < 0.01:
+                    price = round(price, 4)
+                else:
+                    price = round(price,3)
                 price = "{:,}".format(price)
                 percent_change = price_data[coin_label]['usd_24h_change']
                 percent_change = round(percent_change, 2)
@@ -420,7 +425,7 @@ class discord_bot:
         volumes = []
         # get exchange data and input into volume list
         for ex in exchange_ids:
-            volumes.append(cg.get_exchanges_volume_chart_by_id(id = ex, days = num_days))
+            volumes.append(self.cg.get_exchanges_volume_chart_by_id(id = ex, days = num_days))
         plt.clf()
         x_vals = []
         y_vals = []
@@ -433,7 +438,7 @@ class discord_bot:
             if len(vol) < min:
                 min = len(vol)
         # now enter the datapoints into column
-        for vol, output in zip(volumes, output):
+        for vol, output in zip(volumes, output_volumes):
             for point in vol:
                 if count == 0:
                     time_conv = datetime.utcfromtimestamp(point[0] / 1000).strftime('%Y-%m-%d')
@@ -447,7 +452,8 @@ class discord_bot:
                 count += 1
                 if count == min:
                     break
-        print(output)
+        print(output_volumes)
+        return
 
     def get_conversion(self, num, first, second):
         first_coin = ""
