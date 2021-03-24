@@ -70,6 +70,7 @@ class discord_bot:
                     price = round(price, 4)
                 else:
                     price = round(price,3)
+                # format price for commas
                 price = "{:,}".format(price)
                 percent_change = price_data[coin_label]['usd_24h_change']
                 percent_change = round(percent_change, 2)
@@ -460,26 +461,55 @@ class discord_bot:
         coin = self.check_coin(coin_name)
         if coin == "":
             return "e"
+        # get market data
+        market_data = self.cg.get_coin_by_id(id = coin)
+        ath = market_data["market_data"]["ath"]["usd"]
+        atl = market_data["market_data"]["atl"]["usd"]
+        # change the coin name capitalization
+        coin_final = self.change_cap(coin)
+        # then deduce based on type of prompt
         if symbol == "H":
-            market_data = self.cg.get_coin_by_id(id = coin)
-            ath = market_data["market_data"]["ath"]["usd"]
             if ath != None and ath != "":
                 ath = "{:,}".format(ath)
-                coin = self.change_cap(coin)
                 embedResponse = discord.Embed(color=0xFF8C00)
-                embedResponse.add_field(name= coin + " ATH", value= "$" + str(ath), inline=False)
+                embedResponse.add_field(name= coin_final + " ATH", value= "$" + str(ath), inline=False)
                 return embedResponse
+            else:
+                return "e"
         elif symbol == "L":
-            market_data = self.cg.get_coin_by_id(id = coin)
-            atl = market_data["market_data"]["atl"]["usd"]
             if atl != None and atl != "":
                 atl = "{:,}".format(atl)
-                coin = self.change_cap(coin)
                 embedResponse = discord.Embed(color=0xFF8C00)
-                embedResponse.add_field(name= coin + " ATL", value= "$" + str(atl), inline=False)
+                embedResponse.add_field(name= coin_final + " ATL", value= "$" + str(atl), inline=False)
                 return embedResponse
-
-
+            else:
+                return "e"
+        elif symbol == "R":
+            if ath != None and atl != None and ath != "" and atl != "":
+                # get ath and atl prices
+                ath = "{:,}".format(ath)
+                atl = "{:,}".format(atl)
+                # get current price
+                price_data = self.cg.get_price(ids= coin, vs_currencies='usd', include_24hr_change='true', include_market_cap = 'true')
+                price = price_data[coin]['usd']
+                if price != None:
+                    if float(price) < 0.001:
+                        price = round(price, 5)
+                    elif float(price) < 0.01:
+                        price = round(price, 4)
+                    else:
+                        price = round(price,3)
+                    # format price for commas
+                    price = "{:,}".format(price)
+                    embedResponse = discord.Embed(title= coin_final + " Range", color=0x0000ff)
+                    embedResponse.add_field(name= "All Time Low", value= "$" + str(atl), inline=True)
+                    embedResponse.add_field(name= "Current Price", value= "$" + str(price), inline=True)
+                    embedResponse.add_field(name= "All Time High", value= "$" + str(ath), inline=True)
+                    return embedResponse
+                else:
+                    return "e"
+            else:
+                return "e"
 
     def get_conversion(self, num, first, second):
         first_coin = ""

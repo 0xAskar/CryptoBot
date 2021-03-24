@@ -322,6 +322,61 @@ class discord_bot:
         else:
             return "error"
 
+    def get_all_time(self, symbol, coin_name):
+        coin = ""
+        coin = self.check_coin(coin_name)
+        if coin == "":
+            return "e"
+        # get market data
+        market_data = self.cg.get_coin_by_id(id = coin)
+        ath = market_data["market_data"]["ath"]["usd"]
+        atl = market_data["market_data"]["atl"]["usd"]
+        # change the coin name capitalization
+        coin_final = self.change_cap(coin)
+        # then deduce based on type of prompt
+        if symbol == "H":
+            if ath != None and ath != "":
+                ath = "{:,}".format(ath)
+                embedResponse = discord.Embed(color=0xFF8C00)
+                embedResponse.add_field(name= coin_final + " ATH", value= "$" + str(ath), inline=False)
+                return embedResponse
+            else:
+                return "e"
+        elif symbol == "L":
+            if atl != None and atl != "":
+                atl = "{:,}".format(atl)
+                embedResponse = discord.Embed(color=0xFF8C00)
+                embedResponse.add_field(name= coin_final + " ATL", value= "$" + str(atl), inline=False)
+                return embedResponse
+            else:
+                return "e"
+        elif symbol == "R":
+            if ath != None and atl != None and ath != "" and atl != "":
+                # get ath and atl prices
+                ath = "{:,}".format(ath)
+                atl = "{:,}".format(atl)
+                # get current price
+                price_data = self.cg.get_price(ids= coin, vs_currencies='usd', include_24hr_change='true', include_market_cap = 'true')
+                price = price_data[coin]['usd']
+                if price != None:
+                    if float(price) < 0.001:
+                        price = round(price, 5)
+                    elif float(price) < 0.01:
+                        price = round(price, 4)
+                    else:
+                        price = round(price,3)
+                    # format price for commas
+                    price = "{:,}".format(price)
+                    embedResponse = discord.Embed(title= coin_final + " Range", color=0x0000ff)
+                    embedResponse.add_field(name= "All Time Low", value= "$" + str(atl), inline=True)
+                    embedResponse.add_field(name= "Current Price", value= "$" + str(price), inline=True)
+                    embedResponse.add_field(name= "All Time High", value= "$" + str(ath), inline=True)
+                    return embedResponse
+                else:
+                    return "e"
+            else:
+                return "e"
+
     def get_conversion(self, num, first, second):
         first_coin = ""
         second_coin = ""

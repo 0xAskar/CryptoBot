@@ -200,6 +200,25 @@ if __name__ == "__main__":
                     await message.channel.send(embed = supply_output)
                 else:
                     await message.channel.send(embed = db.error())
+            elif str_divide[0] == "ath" or str_divide[0] == "atl" or str_divide[0] == "range":
+                if str_divide[0] == "ath":
+                    output = db.get_all_time("H", str_divide[1])
+                    if output != "e":
+                        await message.channel.send(embed = output)
+                    else:
+                        await message.channel.send(embed = db.error())
+                elif str_divide[0] == "atl":
+                    output = db.get_all_time("L", str_divide[1])
+                    if output != "e":
+                        await message.channel.send(embed = output)
+                    else:
+                        await message.channel.send(embed = db.error())
+                elif str_divide[0] == "range":
+                    output = db.get_all_time("R", str_divide[1])
+                    if output != "e":
+                        await message.channel.send(embed = output)
+                    else:
+                        await message.channel.send(embed = db.error())
             # if user's request has more than one string, send error
             elif len(str_divide) > 1:
                 # ignores commands about coins
