@@ -117,6 +117,13 @@ if __name__ == "__main__":
         # volume = db.cg.get_exchanges_volume_chart_by_id(id = "binance", days = "14")
         # print(db.get_volume_chart("14"))
         # print(db.cg.get_coins_list())
+        output = db.cg.get_coin_by_id(id = "bitcoin")
+        # print(output["market_data"]["price_change_percentage_24h"])
+        # print(output["market_data"]["fully_diluted_valuation"])
+        # print(output["market_data"]["ath"])
+        print(output["market_data"]["ath"]["usd"])
+        # print(output["market_data"]["ath_date"])
+        # print(output[price_change_percentage_24])
 
 
 
@@ -233,6 +240,19 @@ if __name__ == "__main__":
                     await message.channel.send(embed = supply_output)
                 else:
                     await message.channel.send(embed = db.error())
+            elif str_divide[0] == "ath" or str_divide[0] == "atl":
+                if str_divide[0] == "ath":
+                    output = db.get_all_time("H", str_divide[1])
+                    if output != "e":
+                        await message.channel.send(embed = output)
+                    else:
+                        await message.channel.send(embed = db.error())
+                elif str_divide[0] == "atl":
+                    output = db.get_all_time("L", str_divide[1])
+                    if output != "e":
+                        await message.channel.send(embed = output)
+                    else:
+                        await message.channel.send(embed = db.error())
             # if user's request has more than one string, send error
             elif len(str_divide) > 1:
                 # ignores commands about coins

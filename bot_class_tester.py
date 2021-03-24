@@ -455,6 +455,32 @@ class discord_bot:
         print(output_volumes)
         return
 
+    def get_all_time(self, symbol, coin_name):
+        coin = ""
+        coin = self.check_coin(coin_name)
+        if coin == "":
+            return "e"
+        if symbol == "H":
+            market_data = self.cg.get_coin_by_id(id = coin)
+            ath = market_data["market_data"]["ath"]["usd"]
+            if ath != None and ath != "":
+                ath = "{:,}".format(ath)
+                coin = self.change_cap(coin)
+                embedResponse = discord.Embed(color=0xFF8C00)
+                embedResponse.add_field(name= coin + " ATH", value= "$" + str(ath), inline=False)
+                return embedResponse
+        elif symbol == "L":
+            market_data = self.cg.get_coin_by_id(id = coin)
+            atl = market_data["market_data"]["atl"]["usd"]
+            if atl != None and atl != "":
+                atl = "{:,}".format(atl)
+                coin = self.change_cap(coin)
+                embedResponse = discord.Embed(color=0xFF8C00)
+                embedResponse.add_field(name= coin + " ATL", value= "$" + str(atl), inline=False)
+                return embedResponse
+
+
+
     def get_conversion(self, num, first, second):
         first_coin = ""
         second_coin = ""
