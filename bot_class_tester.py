@@ -476,6 +476,7 @@ class discord_bot:
                 return embedResponse
             else:
                 return "e"
+
         elif symbol == "L":
             if atl != None and atl != "":
                 atl = "{:,}".format(atl)
@@ -510,6 +511,27 @@ class discord_bot:
                     return "e"
             else:
                 return "e"
+
+
+    # get an image of a coin
+    def get_image(self, coin_name):
+        coin = ""
+        coin = self.check_coin(coin_name)
+        if coin == "":
+            return "e"
+        # get coin image data
+        output = self.cg.get_coin_by_id(id = coin)
+        image_url = image_cg = output["image"]["small"]
+        # change the coin name capitalization
+        coin_final = self.change_cap(coin)
+
+        # take image and save as png
+        req = requests.get(image_url, headers={'User-Agent': 'Mozilla/5.0'})
+        # webpage = urlopen(req).read()
+        file = open("image.png", "wb")
+        file.write(req.content)
+        file.close()
+        return coin_final
 
     def get_conversion(self, num, first, second):
         first_coin = ""

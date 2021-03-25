@@ -10,8 +10,11 @@ import datetime
 from discord.ext import tasks, commands
 from discord.ext.tasks import loop
 from discord.ext import commands
-
-load_dotenv()
+import urllib.request
+import requests
+from urllib.request import Request, urlopen
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 
 if __name__ == "__main__":
     # main variables
@@ -200,6 +203,14 @@ if __name__ == "__main__":
                     await message.channel.send(embed = supply_output)
                 else:
                     await message.channel.send(embed = db.error())
+            elif str_divide[0] == "image":
+                image_output = db.get_image(str_divide[1])
+                if image_output != "e":
+                    embedResponse = discord.Embed(title = image_output, color=0x4E6F7B) #creates embed
+                    embedResponse.set_image(url="attachment://image.png")
+                    await message.channel.send(file = discord.File("image.png"), embed = embedResponse)
+                else:
+                    await message.channel.send(embed = db.error())
             elif str_divide[0] == "ath" or str_divide[0] == "atl" or str_divide[0] == "range":
                 if str_divide[0] == "ath":
                     output = db.get_all_time("H", str_divide[1])
@@ -222,8 +233,9 @@ if __name__ == "__main__":
             # if user's request has more than one string, send error
             elif len(str_divide) > 1:
                 # ignores commands about coins
-                if str_divide[0] == "future" or str_divide[0] == "bought" or str_divide[0] == "sold" or str_divide[0] == "undo" or str_divide[0] == "rank":
-                    pass
+                for word in useless_words:
+                    if str_divide[0] == word:
+                        pass
                 else:
                     await message.channel.send(embed = db.error())
             elif len(str_divide) == 1:

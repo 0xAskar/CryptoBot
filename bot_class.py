@@ -32,34 +32,13 @@ class discord_bot:
 
     logging.basicConfig(filename="log.log", level=logging.INFO)
 
-    help =  "```CryptoBot gives you sends live updates of " + \
-    "any cryptocurrency!" + "\n" + "\n" + \
-    "Commands:" + "\n" + "\n" + \
-    "   Price Command: ![coin symbol/name], '!btc' or '!bitcoin' - retreive price information about a coin" + "\n" + "\n" + \
-    "   Chart Command: '!chart btc 5' <chart> <coin> <num days> - retreive the line chart of a coin, only support USD as of now (ex: !chart link 30)" + "\n" + "\n" + \
-    "   Chart Command: '!chart btc 5' <chart> <coin1> <coin2> <num days> - retreive the line chart of two coins coupled (ex: !chart link btc 30)" + "\n" + "\n" + \
-    "   Candle Command: '!candle btc 5' <chart> <coin_name/symbol> <num days>, "\
-    "days has to be one of these:" + "\n" + "   '1','7','14','30','90','180','365','MAX' - retreive the candle chart of a coin" + "\n" + "\n" + \
-    "   Suggestion Command: !suggestion or !suggestions do this' <suggestion> <message> - send a suggestion for the bot" + "\n" + "\n" + \
-    "   Gas Command: '!gas' - get information about gwei prices" + "\n" + "\n" + \
-    "   Convert Command: '!convert <num> <coin1> <coin2>' - get conversion rate of num of coin1 in number of coin2 (ex: !convert 1000 usdc btc)" + "\n" + "\n" + \
-    "   Global Defi Stats Command: '!global-defi' - get global information about defi" + "\n" + "\n" + \
-    "   Top Trending Coins Command: '!trendy - get the top trending coins on CoinGecko" + "\n" + "\n" + \
-    "   Supply Command: '!supply <coin> - get the circulating and maximum supply of a coin" + "\n" + "\n" + \
-    "   Golden Ratio Multiple Indicator (BTC): '!grm-chart" + "\n" + "\n" + \
-    "   Puell Multiple Indicator (BTC): '!puell-chart" + "\n" + "\n" + \
-    "   MVRV Z-Score Indicator (BTC): '!mvrv-chart" + "\n" + "\n" + \
-    "   PI Cycle Top Indicator (BTC): '!pi-chart" + "\n" + "\n" + \
-    "Credits to CoinGecko® for the free API!```"
-
-
-
     # functions to gather btc, eth, and any coins price
     def btc_status(self):
         price_data = self.cg.get_price(ids= 'bitcoin', vs_currencies='usd')
         price = price_data['bitcoin']['usd']
         if price != None:
             price = round(price,2)
+            price = "{:,}".format(price)
             response = "Bitcoin - $" + str(price)
             logging.info("Logged BTC price at " + str(datetime.now()))
             return response
@@ -72,6 +51,7 @@ class discord_bot:
         price = price_data['ethereum']['usd']
         if price != None:
             price = round(price,2)
+            price = "{:,}".format(price)
             response = "Ethereum: $" + str(price)
             logging.info("Logged ETH price at " + str(datetime.now()))
             return response
@@ -322,6 +302,7 @@ class discord_bot:
         else:
             return "error"
 
+    # function to get the ath, atl, and/or the range of the coin
     def get_all_time(self, symbol, coin_name):
         coin = ""
         coin = self.check_coin(coin_name)
@@ -377,6 +358,27 @@ class discord_bot:
             else:
                 return "e"
 
+    # get an image of a coin
+    def get_image(self, coin_name):
+        coin = ""
+        coin = self.check_coin(coin_name)
+        if coin == "":
+            return "e"
+        # get coin image data
+        output = self.cg.get_coin_by_id(id = coin)
+        image_url = image_cg = output["image"]["small"]
+        # change the coin name capitalization
+        coin_final = self.change_cap(coin)
+
+        # take image and save as png
+        req = requests.get(image_url, headers={'User-Agent': 'Mozilla/5.0'})
+        # webpage = urlopen(req).read()
+        file = open("image.png", "wb")
+        file.write(req.content)
+        file.close()
+        return coin_final
+
+    # convert one coin in the amount of another
     def get_conversion(self, num, first, second):
         first_coin = ""
         second_coin = ""
@@ -689,3 +691,27 @@ class discord_bot:
         for member in guild.members:
             if member.id == mem_id:
                 return member
+
+
+    help =  "```CryptoBot gives you sends live updates of " + \
+    "any cryptocurrency!" + "\n" + "\n" + \
+    "Commands:" + "\n" + "\n" + \
+    "   Price Command: ![coin symbol/name], '!btc' or '!bitcoin' - retreive price information about a coin" + "\n" + "\n" + \
+    "   Chart Command: '!chart btc 5' <chart> <coin> <num days> - retreive the line chart of a coin, only support USD as of now (ex: !chart link 30)" + "\n" + "\n" + \
+    "   Chart Command: '!chart btc 5' <chart> <coin1> <coin2> <num days> - retreive the line chart of two coins coupled (ex: !chart link btc 30)" + "\n" + "\n" + \
+    "   Candle Command: '!candle btc 5' <chart> <coin_name/symbol> <num days>, "\
+    "days has to be one of these:" + "\n" + "   '1','7','14','30','90','180','365','MAX' - retreive the candle chart of a coin" + "\n" + "\n" + \
+    "   Suggestion Command: !suggestion or !suggestions do this' <suggestion> <message> - send a suggestion for the bot" + "\n" + "\n" + \
+    "   Gas Command: '!gas' - get information about gwei prices" + "\n" + "\n" + \
+    "   Convert Command: '!convert <num> <coin1> <coin2>' - get conversion rate of num of coin1 in number of coin2 (ex: !convert 1000 usdc btc)" + "\n" + "\n" + \
+    "   Global Defi Stats Command: '!global-defi' - get global information about defi" + "\n" + "\n" + \
+    "   Top Trending Coins Command: '!trendy - get the top trending coins on CoinGecko" + "\n" + "\n" + \
+    "   Supply Command: '!supply <coin> - get the circulating and maximum supply of a coin" + "\n" + "\n" + \
+    "   Golden Ratio Multiple Indicator (BTC): '!grm-chart" + "\n" + "\n" + \
+    "   Puell Multiple Indicator (BTC): '!puell-chart" + "\n" + "\n" + \
+    "   MVRV Z-Score Indicator (BTC): '!mvrv-chart" + "\n" + "\n" + \
+    "   PI Cycle Top Indicator (BTC): '!pi-chart" + "\n" + "\n" + \
+    "   ATH, ATL, Range Commands: '!ath [coin], !atl [coin], !range [coin]" + "\n" + "\n" + \
+    "   Image Command: '!image [coin]" + "\n" + "\n" + \
+    "   Defisocks: '!defisocks" + "\n" + "\n" + \
+    "Credits to CoinGecko® for the free API!```"

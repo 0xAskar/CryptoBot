@@ -11,8 +11,12 @@ from discord.ext import tasks, commands
 from discord.ext.tasks import loop
 from discord.ext import commands
 import sys
+import urllib.request
+import requests
+from urllib.request import Request, urlopen
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 
-load_dotenv()
 
 
 if __name__ == "__main__":
@@ -117,19 +121,33 @@ if __name__ == "__main__":
         # volume = db.cg.get_exchanges_volume_chart_by_id(id = "binance", days = "14")
         # print(db.get_volume_chart("14"))
         # print(db.cg.get_coins_list())
-        output = db.cg.get_coin_by_id(id = "bitcoin")
-        # print(output["market_data"]["price_change_percentage_24h"])
-        # print(output["market_data"]["fully_diluted_valuation"])
+        output = db.cg.get_coin_by_id(id = "uniswap")
+        for hm in output:
+            print(hm)
+        image_cg = output["image"]["large"]
         # print(output["market_data"]["ath"])
-        print(output["market_data"]["ath"]["usd"])
+        # print(output["market_data"]["ath"]["usd"])
         # print(output["market_data"]["ath_date"])
         # print(output[price_change_percentage_24])
+        # urllib.request.urlretrieve("https://assets.coingecko.com/coins/images/12504/small/uniswap-uni.png?1600306604", "uni.png")
+        # req = requests.get(image_cg, headers={'User-Agent': 'Mozilla/5.0'})
+        # # webpage = urlopen(req).read()
+        # file = open("image.png", "wb")
+        # file.write(req.content)
+        # file.close()
+        # # req.retrieve("https://assets.coingecko.com/coins/images/12504/small/uniswap-uni.png?1600306604", "uni.png")
+        # img = mpimg.imread('image.png')
+        # imgplot = plt.imshow(img)
+        # plt.show()
 
 
 
     @bot.event
     async def on_message(message):
         # retrieve message
+
+        useless_words = ["future", "bought", "ban", "mute", "sold", "undo", "rank"]
+
         info = message.content
         command = ""
         info = info.lower()
@@ -240,6 +258,14 @@ if __name__ == "__main__":
                     await message.channel.send(embed = supply_output)
                 else:
                     await message.channel.send(embed = db.error())
+            elif str_divide[0] == "image":
+                image_output = db.get_image(str_divide[1])
+                if image_output != "e":
+                    embedResponse = discord.Embed(title = image_output, color=0x4E6F7B) #creates embed
+                    embedResponse.set_image(url="attachment://image.png")
+                    await message.channel.send(file = discord.File("image.png"), embed = embedResponse)
+                else:
+                    await message.channel.send(embed = db.error())
             elif str_divide[0] == "ath" or str_divide[0] == "atl" or str_divide[0] == "range":
                 if str_divide[0] == "ath":
                     output = db.get_all_time("H", str_divide[1])
@@ -262,8 +288,9 @@ if __name__ == "__main__":
             # if user's request has more than one string, send error
             elif len(str_divide) > 1:
                 # ignores commands about coins
-                if str_divide[0] == "future" or str_divide[0] == "bought" or str_divide[0] == "sold" or str_divide[0] == "undo" or str_divide[0] == "rank":
-                    pass
+                for word in useless_words:
+                    if str_divide[0] == word:
+                        pass
                 else:
                     await message.channel.send(embed = db.error())
             elif len(str_divide) == 1:
