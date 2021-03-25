@@ -16,7 +16,9 @@ Features:
 - Defisocks
 
 To learn more about the bot once it's added, use !crypto-help.
-Email mattaska@umich.edu for use or any feedback
+
+Email mattaska@umich.edu for use or any feedback.
+
 Add to your discord server using the link below:
 https://discord.com/api/oauth2/authorize?client_id=769265839584051200&permissions=1812987072&scope=bot
 Thanks for checking it out and thanks to CoinGecko for the free API!
