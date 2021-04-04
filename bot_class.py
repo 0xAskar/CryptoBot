@@ -90,7 +90,7 @@ class discord_bot:
                 coin_name = self.change_cap(coin_name)
                 # embedResponse = discord.Embed(title=coin_name + " Info", color=0xFF8C00)
                 embedResponse = discord.Embed(color=0xFF8C00)
-                embedResponse.add_field(name= coin_name + " Price", value= "$" + str(price), inline=False)
+                embedResponse.add_field(name= coin_name + " Price", value= "["  + "$" + str(price) + "](https://www.coingecko.com/en/coins/" + coin_label + ")", inline=False)
                 embedResponse.add_field(name= coin_name + " Percent Change (24hr)", value= str(percent_change), inline=False)
                 embedResponse.add_field(name= coin_name + " Market Cap", value= mc, inline=False)
                 response1 = "```" + coin_name + "'s price: $" + str(price) + "\n" + "Percent Change (24h): " + str(percent_change) + "%" + "\n" + "Market Cap: $" + str(market_cap) + "```"

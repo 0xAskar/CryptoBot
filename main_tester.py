@@ -16,7 +16,7 @@ import requests
 from urllib.request import Request, urlopen
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
-
+import praw
 
 
 if __name__ == "__main__":
@@ -111,7 +111,6 @@ if __name__ == "__main__":
                     askar_name = member.name
         for bot_x in bot_names:
             print(f'{bot_x} has connected to Discord!')
-        output = db.cg.get_coin_by_id(id= "bitcoin")
         # print(output["market_data"]["circulating_supply"])
         # for x in output:
             # print(x)
@@ -122,8 +121,7 @@ if __name__ == "__main__":
         # print(db.get_volume_chart("14"))
         # print(db.cg.get_coins_list())
         output = db.cg.get_coin_by_id(id = "uniswap")
-        for hm in output:
-            print(hm)
+        # print(output)
         image_cg = output["image"]["large"]
         # print(output["market_data"]["ath"])
         # print(output["market_data"]["ath"]["usd"])
@@ -139,6 +137,14 @@ if __name__ == "__main__":
         # img = mpimg.imread('image.png')
         # imgplot = plt.imshow(img)
         # plt.show()
+        reddit = praw.Reddit(
+                client_id = "XTLJUNRiv4GzGA",
+                client_secret = "dBTEoLhVX_ob61wJXRyif177Ugli0w",
+                user_agent = "cryptobot",
+                )
+        # for submission in reddit.subreddit("CryptoMoonShots").new(limit = 10):
+        #     # print(submission)
+        #     print(submission.title)
 
 
 
@@ -309,6 +315,11 @@ if __name__ == "__main__":
                     await message.channel.send(embed = db.get_trending())
                 elif command == 'future':
                     await message.channel.send(db.future())
+                elif command == "test":
+                    embedResponse = discord.Embed(color=0x4E6F7B) #creates embed
+                    # embedResponse.description = "This country is not supported, you can ask me to add it [here](google.com)."
+                    embedResponse.add_field(name= "Test", value = "test [link](http://google.com/)", inline=False)
+                    await message.channel.send(embed = embedResponse)
                 elif command == "defisocks":
                     # results = db.get_defisocks()
                     # print(len(results))
