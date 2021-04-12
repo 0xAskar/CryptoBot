@@ -12,8 +12,8 @@ Features:
 - Global Defi Stats
 - Coin conversions
 - ATH, ATL, and Range stats
-- On-chain Bitcoin metrics (Puell, MVRV, Pi, GRM)
-- Defisocks
+- On-chain Bitcoin metrics (Puell, MVRV, Pi, GRM) (Currently Unavailable)
+- Defisocks (Currently Unavailable)
 
 To learn more about the bot once it's added, use !crypto-help.
 

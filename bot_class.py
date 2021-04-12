@@ -714,4 +714,5 @@ class discord_bot:
     "   ATH, ATL, Range Commands: '!ath [coin], !atl [coin], !range [coin]" + "\n" + "\n" + \
     "   Image Command: '!image [coin]" + "\n" + "\n" + \
     "   Defisocks: '!defisocks" + "\n" + "\n" + \
+    "   ATH, ATL, Range: '!ath [coin], !atl [coin], !range [coin]" + "\n" + "\n" + \
     "Credits to CoinGecko® for the free API!```"
