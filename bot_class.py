@@ -751,6 +751,7 @@ class discord_bot:
     "   PI Cycle Top Indicator (BTC): '!pi-chart" + "\n" + "\n" + \
     "   ATH, ATL, Range Commands: '!ath [coin], !atl [coin], !range [coin]" + "\n" + "\n" + \
     "   Image Command: '!image [coin]" + "\n" + "\n" + \
+    "   TVL Command: '!tvl [coin]" + "\n" + "\n" + \
     "   Mcap to TVL Ratio Command: '!tvl-ratio [coin]" + "\n" + "\n" + \
     "   Defisocks: '!defisocks" + "\n" + "\n" + \
     "   ATH, ATL, Range: '!ath [coin], !atl [coin], !range [coin]" + "\n" + "\n" + \
