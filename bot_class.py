@@ -21,6 +21,7 @@ from selenium import webdriver
 from time import sleep
 from selenium.webdriver.chrome.options import Options
 from PIL import Image
+import copy
 
 class discord_bot:
     # api instance
@@ -31,6 +32,9 @@ class discord_bot:
     )
 
     logging.basicConfig(filename="log.log", level=logging.INFO)
+
+    global the_coin_list
+    the_coin_list = copy.deepcopy(cg.get_coins_list())
 
     # functions to gather btc, eth, and any coins price
     def btc_status(self):
@@ -573,9 +577,13 @@ class discord_bot:
         coin_name = coin_name.lower()
         if coin_name == "uni":
             coin_name = "uniswap"
+        elif coin_name == "rbc":
+            coin_name = "rubic"
+        elif coin_name == "comp" or coin_name == "compound":
+            coin_name = "compound-governance-token"
         elif coin_name == "graph" or coin_name == "thegraph":
             coin_name = "the-graph"
-        for coin in self.cg.get_coins_list():
+        for coin in the_coin_list:
             if coin['id'] == coin_name or coin['symbol'] == coin_name:
                 if coin['symbol'] == coin_name:
                     coin_label = coin['id']
@@ -588,7 +596,7 @@ class discord_bot:
     def change_cap(self, coin_name):
         coin_label = ""
         coin_name = coin_name.lower()
-        for coin in self.cg.get_coins_list():
+        for coin in the_coin_list:
             if coin['id'] == coin_name or coin['symbol'] == coin_name:
                 if coin['symbol'] == coin_name:
                     coin_label = coin_name.upper()

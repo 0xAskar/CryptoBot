@@ -145,6 +145,10 @@ if __name__ == "__main__":
         # for submission in reddit.subreddit("CryptoMoonShots").new(limit = 10):
         #     # print(submission)
         #     print(submission.title)
+        con = "0x85eee30c52b0b379b046fb0f85f4f3dc3009afec"
+        ouput = db.cg.get_token_price(id = "ethereum", contract_addresses = con, vs_currencies = "USD", include_market_cap = "true", include_24hr_change = "true")
+        print(ouput[con])
+
 
 
 

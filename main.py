@@ -239,8 +239,6 @@ if __name__ == "__main__":
                 else:
                     await message.channel.send(embed = db.error())
             elif len(str_divide) == 1:
-                if command == "uni":
-                    command = "uniswap"
                 # if user wants events
                 # if command == "events":
                 #     await message.channel.send(db.get_events())
