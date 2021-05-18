@@ -12,6 +12,7 @@ Features:
 - Global Defi Stats
 - Coin conversions
 - ATH, ATL, and Range stats
+- Market Cap to TVL Ratio
 - On-chain Bitcoin metrics (Puell, MVRV, Pi, GRM) (Currently Unavailable)
 - Defisocks (Currently Unavailable)
 

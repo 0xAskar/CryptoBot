@@ -230,6 +230,10 @@ if __name__ == "__main__":
                         await message.channel.send(embed = output)
                     else:
                         await message.channel.send(embed = db.error())
+            elif str_divide[0] == "tvl-ratio":
+                print("in here")
+                output = db.get_mcap_to_tvl_ratio(str_divide[1])
+                await message.channel.send(embed = output)
             # if user's request has more than one string, send error
             elif len(str_divide) > 1:
                 # ignores commands about coins

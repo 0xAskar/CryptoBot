@@ -450,6 +450,19 @@ class discord_bot:
         embedResponse.add_field(name = "Top Trending Coins on CoinGecko", value = output)
         return embedResponse
 
+    def get_mcap_to_tvl_ratio(self, coin):
+        coin_name = ""
+        coin_name = self.check_coin(coin)
+        # check if the coin names are valid
+        if coin_name == "":
+            return "e"
+        data = self.cg.get_coin_by_id(id= coin_name)
+        ratio = data["market_data"]["mcap_to_tvl_ratio"]
+        coin_name = self.change_cap(coin_name)
+        embedResponse = discord.Embed(color = 0xF8C300)
+        embedResponse.add_field(name = coin_name + " Mcap to TVL Ratio", value = str(ratio), inline=False)
+        return embedResponse
+
     def get_gmr(self):
         options = webdriver.ChromeOptions()
         options.headless = True
@@ -721,6 +734,7 @@ class discord_bot:
     "   PI Cycle Top Indicator (BTC): '!pi-chart" + "\n" + "\n" + \
     "   ATH, ATL, Range Commands: '!ath [coin], !atl [coin], !range [coin]" + "\n" + "\n" + \
     "   Image Command: '!image [coin]" + "\n" + "\n" + \
+    "   Mcap to TVL Ratio Command: '!tvl-ratio [coin]" + "\n" + "\n" + \
     "   Defisocks: '!defisocks" + "\n" + "\n" + \
     "   ATH, ATL, Range: '!ath [coin], !atl [coin], !range [coin]" + "\n" + "\n" + \
     "Credits to CoinGecko® for the free API!```"
