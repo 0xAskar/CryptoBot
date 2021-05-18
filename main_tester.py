@@ -147,7 +147,7 @@ if __name__ == "__main__":
         #     print(submission.title)
         con = "0x85eee30c52b0b379b046fb0f85f4f3dc3009afec"
         ouput = db.cg.get_token_price(id = "ethereum", contract_addresses = con, vs_currencies = "USD", include_market_cap = "true", include_24hr_change = "true")
-        # print(output["market_data"]["mcap_to_tvl_ratio"])
+        print(output["market_data"]["total_value_locked"]["usd"])
 
 
 
@@ -296,8 +296,10 @@ if __name__ == "__main__":
                     else:
                         await message.channel.send(embed = db.error())
             elif str_divide[0] == "tvl-ratio":
-                print("in here")
                 output = db.get_mcap_to_tvl_ratio(str_divide[1])
+                await message.channel.send(embed = output)
+            elif str_divide[0] == "tvl":
+                output = db.get_tvl(str_divide[1])
                 await message.channel.send(embed = output)
             # if user's request has more than one string, send error
             elif len(str_divide) > 1:

@@ -463,6 +463,23 @@ class discord_bot:
         embedResponse.add_field(name = coin_name + " Mcap to TVL Ratio", value = str(ratio), inline=False)
         return embedResponse
 
+    def get_tvl(self, coin):
+        coin_name = ""
+        coin_name = self.check_coin(coin)
+        # check if the coin names are valid
+        if coin_name == "":
+            return "e"
+        data = self.cg.get_coin_by_id(id= coin_name)
+        try:
+            tvl = data["market_data"]["total_value_locked"]["usd"]
+            tvl = self.check_large(tvl)
+        except:
+            tvl = "None"
+        coin_name = self.change_cap(coin_name)
+        embedResponse = discord.Embed(color = 0xF8C300)
+        embedResponse.add_field(name = coin_name + " TVL", value = str(tvl), inline=False)
+        return embedResponse
+
     def get_gmr(self):
         options = webdriver.ChromeOptions()
         options.headless = True

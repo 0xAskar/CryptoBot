@@ -234,6 +234,9 @@ if __name__ == "__main__":
                 print("in here")
                 output = db.get_mcap_to_tvl_ratio(str_divide[1])
                 await message.channel.send(embed = output)
+            elif str_divide[0] == "tvl":
+                output = db.get_tvl(str_divide[1])
+                await message.channel.send(embed = output)
             # if user's request has more than one string, send error
             elif len(str_divide) > 1:
                 # ignores commands about coins
@@ -262,21 +265,7 @@ if __name__ == "__main__":
                 elif command == 'global-defi':
                     await message.channel.send(db.get_global_defi_data())
                 elif command == "defisocks":
-                    # results = db.get_defisocks()
-                    # print(len(results))
-                    # last_trxn = results[-1]
-                    # last_hash = last_trxn["hash"]
-                    # global last_contract
-                    # output_message = ""
-                    # if last_hash != last_contract:
-                    #     print("Current Hash: " + last_contract)
-                    #     print("New Hash: " + last_hash)
-                    #     output_message = "Change!"
-                    #     last_contract = last_hash
-                    # else:
-                    #     output_message = "no change"
-                    # await message.channel.send(output_message)
-                    await message.channel.send("Loading...")
+                    await message.channel.send("Unavailable")
                     db.get_ds()
                     embedResponse = discord.Embed(color=0x4E6F7B) #creates embed
                     embedResponse.add_field(name= "Defisocks", value = "Price and Supply of Defisocks", inline=False)
