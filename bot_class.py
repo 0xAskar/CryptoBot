@@ -12,7 +12,7 @@ from discord.ext import commands
 import numpy as np
 import datetime as dt
 import matplotlib.pyplot as plt
-import matplotlib.ticker as mticker
+import matplotlib.ticker as tick
 import matplotlib.dates as mdates
 import mplfinance as mpf
 from pycoingecko import CoinGeckoAPI
@@ -22,6 +22,7 @@ from time import sleep
 from selenium.webdriver.chrome.options import Options
 from PIL import Image
 import copy
+import time
 
 class discord_bot:
     # api instance
@@ -208,9 +209,114 @@ class discord_bot:
 
             edited_style  = mpf.make_mpf_style(gridstyle = '-', facecolor = "lightgray", gridcolor = "white", edgecolor = "black", base_mpl_style = "classic", marketcolors=mc)
             if type == 1:
-                mpf.plot(ohlc, type='line', title = title1, figratio = (16,10), ylabel = 'Price - USD', style = edited_style, savefig = "chart.png")
+                fig, axlist = mpf.plot(ohlc, type='line', title = title1, figratio = (16,10), ylabel = 'Price - USD', style = edited_style, returnfig = True)
+                ax1 = axlist[0]
+                # ax1.yaxis.set_major_formatter(tick.FormatStrFormatter('%.8f'))
+                ax1.yaxis.set_major_formatter(tick.FuncFormatter(reformat_large_tick_values))
+                fig.savefig('chart.png')
             else:
-                mpf.plot(ohlc, type='line', title = title1, figratio = (16,10), ylabel = coin_label + "/" + coin_label2, style = edited_style, savefig = "chart.png")
+                fig, axlist = mpf.plot(ohlc, type='line', title = title1, figratio = (16,10), ylabel = coin_label + "/" + coin_label2, style = edited_style, returnfig = True)
+                ax1 = axlist[0]
+                # ax1.yaxis.set_major_formatter(tick.FormatStrFormatter('%.8f'))
+                ax1.yaxis.set_major_formatter(tick.FuncFormatter(reformat_large_tick_values))
+                fig.savefig('chart.png')
+            return ""
+        else:
+            return "error"
+
+    def get_tvl_chart(self, coin_name, coin_name2, num_days, type):
+        #coin label work
+        coin_label = ""
+        coin_name = coin_name.lower()
+        coin_label = self.check_coin(coin_name)
+        #coin label 2 work
+
+        valid_intervals = ["1w", "1m", "3m", "1y", "all", "max"]
+        check_int = False
+        num_days = num_days.lower()
+        for interval in valid_intervals:
+            if num_days == interval:
+                check_int = True
+        if not check_int:
+            error_days = "```Command Error: Wrong number of days: Only can input '1w','1m','3m','1y','all','max'```"
+            return error_days
+
+        if type == 2:
+            coin_label2 = ""
+            coin_name2 = coin_name2.lower()
+            coin_label2 = self.check_coin(coin_name2)
+
+        if self.check_coin(coin_name) != "":
+            link = "https://data-api.defipulse.com/api/v1/defipulse/api/GetHistory?api-key=" + bot_ids.defipulse_api_key + "&project="+coin_name+"&period=" + num_days
+            response = requests.get(link)
+            output = response.json()
+            y_vals = []
+            x_vals = []
+            count = 0
+            min = len(output)
+            volume = []
+            for one_int in output:
+                time_conv = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(one_int["timestamp"]))
+
+                x_vals.append(time_conv)
+                y_vals.append(one_int["tvlUSD"])
+                volume.append(1)
+                count += 1
+            plt.clf()
+            open, close, high, low = y_vals, y_vals, y_vals, y_vals
+            period = len(open)
+            frequency = ""
+            # if num_days == "1":
+            #     frequency = "5min"
+            # elif num_days != "max" and (int(num_days) <= 90 and int(num_days) > 1):
+            #     frequency = "1H"
+            # else:
+            #     frequency = "4D"
+            dti = pd.date_range(start = x_vals[0], end = x_vals[len(x_vals)-1], periods = period)
+            # print(dti2)
+            # dti = pd.date_range(time_conv, periods=period, freq=frequency)
+            ohlc = {"opens":open, "highs":high, "lows":low, "closes":close, "volumes":volume}
+            ohlc = pd.DataFrame(data = ohlc, index = dti)
+            ohlc.columns = ['Open', 'High', 'Low', 'Close', 'Volume'] #these two lines solved the dataframe problem
+            ohlc.index.name = "Date"
+            # plot and make it look good
+            percent_change = ((close[len(close) - 1] - close[0]) / close[0]) * 100
+            percent_change = round(percent_change, 2)
+            changed, days = "", ""
+            # change title based on days
+            # if num_days == "1":
+            #     days = "the past 24 hours"
+            # elif num_days == "MAX" or num_days == "max":
+            #     days = "Within Lifetime"
+            # else:
+            #     days = "Past " + num_days + " Days"
+            # # change title based on percent
+            # if percent_change > 0:
+            #     changed = "+"
+            # else:
+            #     changed = ""
+
+            percent_change = "{:,}".format(percent_change) # had to do it here because this converts it to a string, need it as a int above
+            # title = "\n" + "\n" + coin_label + "'s price " + changed + percent_change + "% within " + days
+            coin_label = self.change_cap(coin_label)
+            title1 = "\n" + "\n" + coin_label + " " + "Historcal TVL: " + percent_change + "% - " + "Past " + num_days
+            if type == 2:
+                coin_label2 = self.change_cap(coin_name2.lower())
+                title1 = "\n" + "\n" + coin_label + "/" + coin_label2 + " " + changed + percent_change + "% - " + days
+            mc = mpf.make_marketcolors(
+                                up='tab:blue',down='tab:red',
+                                wick={'up':'blue','down':'red'},
+                                volume='tab:green',
+                               )
+            edited_style  = mpf.make_mpf_style(gridstyle = '-', facecolor = "lightgray", gridcolor = "white", edgecolor = "black", base_mpl_style = "classic", marketcolors=mc)
+            if type == 1:
+                fig, axlist = mpf.plot(ohlc, type='line', title = title1, figratio = (16,10), ylabel = 'Price - USD ($)', style = edited_style, returnfig = True)
+                ax1 = axlist[0]
+                # ax1.yaxis.set_major_formatter(tick.FormatStrFormatter('%.8f'))
+                ax1.yaxis.set_major_formatter(tick.FuncFormatter(reformat_large_tick_values))
+                fig.savefig('ctvl.png')
+            else:
+                mpf.plot(ohlc, type='line', title = title1, figratio = (16,10), ylabel = coin_label + "/" + coin_label2, style = edited_style, savefig = "ctvl.png")
             return ""
         else:
             return "error"
@@ -730,7 +836,37 @@ class discord_bot:
             if member.id == mem_id:
                 return member
 
+def reformat_large_tick_values(tick_val, pos):
+    """
+    Turns large tick values (in the billions, millions and thousands) such as 4500 into 4.5K and also appropriately turns 4000 into 4K (no zero after the decimal).
+    """
+    if tick_val >= 1000000000:
+        val = round(tick_val/1000000000, 1)
+        new_tick_format = '{:}B'.format(val)
+    elif tick_val >= 1000000:
+        val = round(tick_val/1000000, 1)
+        new_tick_format = '{:}M'.format(val)
+    elif tick_val >= 1000:
+        val = round(tick_val/1000, 1)
+        new_tick_format = '{:}K'.format(val)
+    elif tick_val < 1000:
+        new_tick_format = round(tick_val, 1)
+    else:
+        new_tick_format = tick_val
 
+    # make new_tick_format into a string value
+    new_tick_format = str(new_tick_format)
+
+    # code below will keep 4.5M as is but change values such as 4.0M to 4M since that zero after the decimal isn't needed
+    index_of_decimal = new_tick_format.find(".")
+
+    if index_of_decimal != -1:
+        value_after_decimal = new_tick_format[index_of_decimal+1]
+        if value_after_decimal == "0":
+            # remove the 0 after the decimal point since it's not needed
+            new_tick_format = new_tick_format[0:index_of_decimal] + new_tick_format[index_of_decimal+2:]
+
+    return new_tick_format
     help =  "```CryptoBot gives you sends live updates of " + \
     "any cryptocurrency!" + "\n" + "\n" + \
     "Commands:" + "\n" + "\n" + \

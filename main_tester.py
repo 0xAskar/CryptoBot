@@ -17,6 +17,7 @@ from urllib.request import Request, urlopen
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import praw
+import json
 
 
 if __name__ == "__main__":
@@ -147,16 +148,21 @@ if __name__ == "__main__":
         #     print(submission.title)
         con = "0x85eee30c52b0b379b046fb0f85f4f3dc3009afec"
         ouput = db.cg.get_token_price(id = "ethereum", contract_addresses = con, vs_currencies = "USD", include_market_cap = "true", include_24hr_change = "true")
-        print(output["market_data"]["total_value_locked"]["usd"])
-
-
-
+        # print(output["market_data"]["total_value_locked"]["usd"])
+        api_key = "a13e3afa930e1666c12f076cace5f14a24435c1829c08f64ad90d722dd78"
+        params = {"api-key": api_key, "project": "aave"}
+        params = {"api-key": api_key}
+        # link = "https://data-api.defipulse.com/api/v1/defipulse/api/GetHistory?api-key=" + api_key + "&project=aave&period=1m"
+        # response = requests.get(link)
+        # output = response.json()
+        # for something in output:
+        #     print(something["timestamp"])
 
     @bot.event
     async def on_message(message):
         # retrieve message
 
-        useless_words = ["future", "bought", "ban", "mute", "sold", "undo", "rank"]
+        useless_words = ["future", "bought", "ban", "mute", "sold", "undo", "rank", "tempmute", "whois"]
 
         info = message.content
         command = ""
@@ -198,7 +204,7 @@ if __name__ == "__main__":
                 # check for default and also make default for chart coin1 coin2
                 elif len(str_divide) == 3:
                     # check to see if theyre doing a normal one coin chart or nto
-                    if str_divide[2].isdigit():
+                    if db.valid_num_days(str_divide[2]):
                         line_output = db.get_line_chart(str_divide[1], "", str_divide[2], 1)
                         if line_output == "":
                             await message.channel.send(file = discord.File('chart.png'))
@@ -247,6 +253,16 @@ if __name__ == "__main__":
                 else:
                     await message.channel.send(embed = db.error())
             # if user wants to check conversion rates
+            elif str_divide[0] == "tvl-chart" or str_divide[0] == "tvlc" or str_divide[0] == "ctvl":
+                if len(str_divide) == 3:
+                    # line_output = db.get_line_chart_two(str_divide[1], str_divide[2],str_divide[3])
+                    ctvl_output = db.get_tvl_chart(str_divide[1], "", str_divide[2], 1)
+                    if ctvl_output == "":
+                        await message.channel.send(file = discord.File('ctvl.png'))
+                    elif ctvl_output == "error":
+                        await message.channel.send(embed = db.error())
+                    else:
+                        await message.channel.send(ctvl_output)
             elif str_divide[0] == "convert":
                 if len(str_divide) == 4 and str(str_divide[1]).isdigit():
                     convert_output = db.get_conversion(str_divide[1], str_divide[2], str_divide[3])

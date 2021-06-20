@@ -157,6 +157,16 @@ if __name__ == "__main__":
                     await message.channel.send(embed = db.error())
                     return
             # if user requests candle chart of a coin
+            elif str_divide[0] == "tvl-chart" or str_divide[0] == "tvlc" or str_divide[0] == "ctvl":
+                if len(str_divide) == 3:
+                    # line_output = db.get_line_chart_two(str_divide[1], str_divide[2],str_divide[3])
+                    ctvl_output = db.get_tvl_chart(str_divide[1], "", str_divide[2], 1)
+                    if ctvl_output == "":
+                        await message.channel.send(file = discord.File('ctvl.png'))
+                    elif ctvl_output == "error":
+                        await message.channel.send(embed = db.error())
+                    else:
+                        await message.channel.send(ctvl_output)
             elif str_divide[0] == "candle":
                 if len(str_divide) == 3 and str(str_divide[2]).isdigit():
                     candle_output = db.get_candle_chart(str_divide[1], str_divide[2])

@@ -11,8 +11,9 @@ from discord.ext.tasks import loop
 from discord.ext import commands
 import numpy as np
 import datetime as dt
+import matplotlib
 import matplotlib.pyplot as plt
-import matplotlib.ticker as mticker
+import matplotlib.ticker as tick
 import matplotlib.dates as mdates
 import mplfinance as mpf
 from pycoingecko import CoinGeckoAPI
@@ -23,6 +24,7 @@ from selenium.webdriver.chrome.options import Options
 from PIL import Image
 import praw
 import copy
+import time
 
 class discord_bot:
     # api instance
@@ -111,9 +113,13 @@ class discord_bot:
 
         #checking if num days is valid
         temp = str(num_days)
+        date_types = ["d", "m", "y"]
         if not temp.isdigit():
             temp = temp.lower()
-            if temp != "max":
+            if len(temp) == 2 and temp[0].isdigit() and any(date_type in temp[1] for date_type in date_types):
+                if temp[1] == "y":
+                    num_days = str(int(temp[0]) * 365)
+            elif temp != "max":
                 return False
 
         if self.check_coin(coin_name) != "":
@@ -153,32 +159,6 @@ class discord_bot:
                         break
                     y_vals[count] = y_vals[count] / point[1]
                     count += 1
-            # print(y_vals)
-            # times = [time1, time2]
-            # year1, year2, month1, month2, day1, day2, hour1, hour2, min1, min2, sec1, sec2 = [0,'Y'],[0,'Y'],[0,'M'],[0,'M'],[0,'D'],[0,'D'],[0,'H'],[0,'H'],[0,'M'],[0,'M'],[0,'S'],[0,'S']
-            # date_stamp = [year1, month1, day1, hour1, min1, sec1, year2, month2, day2, hour2, min2, sec2]
-            # time_increments = [[0,4], [5,7], [8,10], [11,13], [14,16], [17,20]]
-            # for time in times:
-            #     count = 0
-            #     for t in range(0:len(time))
-            #         for increment in date_stamp:
-            #             time[t:t+1]
-            #             count += 1
-            # count = 0
-            # for time in times:
-            #     for increment in time_increments:
-            #         date_stamp[count][0] = int(time[increment[0]:increment[1]])
-            #         count += 1
-            # change = 0
-            # new_period = ""
-            # this would keep the
-            # for i in range(0, len(time_increments)):
-            #     temp = date_stamp[i+len(time_increments)][0] - date_stamp[i][0]
-            #     if temp > 0:
-            #         change = temp
-            #         new_frequency = str(change) + date_stamp[i][1]
-            #         break
-            # create the date and dataframe
             open = y_vals
             close = y_vals
             high = y_vals
@@ -230,107 +210,117 @@ class discord_bot:
 
             edited_style  = mpf.make_mpf_style(gridstyle = '-', facecolor = "lightgray", gridcolor = "white", edgecolor = "black", base_mpl_style = "classic", marketcolors=mc)
             if type == 1:
-                mpf.plot(ohlc, type='line', title = title1, figratio = (16,10), ylabel = 'Price - USD', style = edited_style, savefig = "chart.png")
+                fig, axlist = mpf.plot(ohlc, type='line', title = title1, figratio = (16,10), ylabel = 'Price - USD', style = edited_style, returnfig = True)
+                ax1 = axlist[0]
+                # ax1.yaxis.set_major_formatter(tick.FormatStrFormatter('%.8f'))
+                ax1.yaxis.set_major_formatter(tick.FuncFormatter(reformat_large_tick_values))
+                fig.savefig('chart.png')
             else:
-                mpf.plot(ohlc, type='line', title = title1, figratio = (16,10), ylabel = coin_label + "/" + coin_label2, style = edited_style, savefig = "chart.png")
+                fig, axlist = mpf.plot(ohlc, type='line', title = title1, figratio = (16,10), ylabel = coin_label + "/" + coin_label2, style = edited_style, returnfig = True)
+                ax1 = axlist[0]
+                # ax1.yaxis.set_major_formatter(tick.FormatStrFormatter('%.8f'))
+                ax1.yaxis.set_major_formatter(tick.FuncFormatter(reformat_large_tick_values))
+                fig.savefig('chart.png')
             return ""
         else:
             return "error"
 
-    # # chart of two coins for instance link/btc
-    # def get_line_chart_two(self, coin_name, coin_name2, num_days):
-    #     #coin label work
-    #     coin_label = ""
-    #     coin_label2 = ""
-    #     coin_name = coin_name.lower()
-    #     coin_label2 = coin_name2.lower()
-    #     coin_label = self.check_coin(coin_name)
-    #     coin_label2 = self.check_coin(coin_name2)
-    #     #checking if num days is valid
-    #     temp = str(num_days)
-    #     if not temp.isdigit():
-    #         temp = temp.lower()
-    #         if temp != "max":
-    #             return False
-    #
-    #     if self.check_coin(coin_name) != "":
-    #         charts = self.cg.get_coin_market_chart_by_id(id = coin_label, vs_currency='usd', days = num_days)
-    #         charts2 = self.cg.get_coin_market_chart_by_id(id = coin_label2, vs_currency = 'usd', days = num_days)
-    #         plt.clf()
-    #         x_vals = []
-    #         y_vals = []
-    #         count = 0
-    #         open, close, high, low, volume = [], [], [], [], []
-    #         min = len(charts["prices"])
-    #         if min > len(charts2["prices"]):
-    #             min = len(charts2["prices"])
-    #         for point in charts['prices']:
-    #             if count == min:
-    #                 break
-    #             if count == 0:
-    #                 time_conv = datetime.utcfromtimestamp(point[0] / 1000).strftime('%Y-%m-%d')
-    #             x_vals.append(time_conv)
-    #             y_vals.append(point[1])
-    #             volume.append(1)
-    #             count += 1
-    #         count = 0
-    #         for point in charts2['prices']:
-    #             if count == min:
-    #                 break
-    #             y_vals[count] = y_vals[count] / point[1]
-    #             count += 1
-    #         # create the date and dataframe
-    #         open = y_vals
-    #         close = y_vals
-    #         high = y_vals
-    #         low = y_vals
-    #         period = len(open)
-    #         frequency = ""
-    #         if num_days == "1":
-    #             frequency = "5min"
-    #         elif num_days != "max" and (int(num_days) <= 90 and int(num_days) > 1):
-    #             frequency = "1H"
-    #         else:
-    #             frequency = "4D"
-    #         dti = pd.date_range(time_conv, periods=period, freq=frequency)
-    #         ohlc = {"opens":open, "highs":high, "lows":low, "closes":close, "volumes":volume}
-    #         ohlc = pd.DataFrame(data = ohlc, index = dti)
-    #         ohlc.columns = ['Open', 'High', 'Low', 'Close', 'Volume'] #these two lines solved the dataframe problem
-    #         ohlc.index.name = "Date"
-    #         # plot and make it look good
-    #         percent_change = ((close[len(close) - 1] - close[0]) / close[0]) * 100
-    #         percent_change = round(percent_change, 2)
-    #         changed, days = "", ""
-    #         # change title based on days
-    #         if num_days == "1":
-    #             days = "the past 24 hours"
-    #         elif num_days == "MAX" or num_days == "max":
-    #             days = "Within Lifetime"
-    #         else:
-    #             days = "Past " + num_days + " Days"
-    #         # change title based on percent
-    #         if percent_change > 0:
-    #             changed = "+"
-    #         else:
-    #             changed = ""
-    #
-    #         percent_change = "{:,}".format(percent_change) # had to do it here because this converts it to a string, need it as a int above
-    #         # title = "\n" + "\n" + coin_label + "'s price " + changed + percent_change + "% within " + days
-    #         coin_label = self.change_cap(coin_name.lower())
-    #         coin_label2 = self.change_cap(coin_name2.lower())
-    #         title1 = "\n" + "\n" + coin_label + "/" + coin_label2 + " " + changed + percent_change + "% - " + days
-    #         mc = mpf.make_marketcolors(
-    #                             up='tab:blue',down='tab:red',
-    #                             wick={'up':'blue','down':'red'},
-    #                             volume='tab:green',
-    #                            )
-    #
-    #         edited_style  = mpf.make_mpf_style(gridstyle = '-', facecolor = "lightgray", gridcolor = "white", edgecolor = "black", base_mpl_style = "classic", marketcolors=mc)
-    #         mpf.plot(ohlc, type='line', title = title1, figratio = (16,10), ylabel = coin_label + "/" + coin_label2, style = edited_style, savefig = "chart.png")
-    #         return ""
-    #     else:
-    #         return "error"
+    def get_tvl_chart(self, coin_name, coin_name2, num_days, type):
+        #coin label work
+        coin_label = ""
+        coin_name = coin_name.lower()
+        coin_label = self.check_coin(coin_name)
+        #coin label 2 work
 
+        valid_intervals = ["1w", "1m", "3m", "1y", "all", "max"]
+        check_int = False
+        num_days = num_days.lower()
+        for interval in valid_intervals:
+            if num_days == interval:
+                check_int = True
+        if not check_int:
+            error_days = "```Command Error: Wrong number of days: Only can input '1w','1m','3m','1y','all','max'```"
+            return error_days
+
+        if type == 2:
+            coin_label2 = ""
+            coin_name2 = coin_name2.lower()
+            coin_label2 = self.check_coin(coin_name2)
+
+        if self.check_coin(coin_name) != "":
+            link = "https://data-api.defipulse.com/api/v1/defipulse/api/GetHistory?api-key=" + bot_ids.defipulse_api_key + "&project="+coin_name+"&period=" + num_days
+            response = requests.get(link)
+            output = response.json()
+            y_vals = []
+            x_vals = []
+            count = 0
+            min = len(output)
+            volume = []
+            for one_int in output:
+                time_conv = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(one_int["timestamp"]))
+
+                x_vals.append(time_conv)
+                y_vals.append(one_int["tvlUSD"])
+                volume.append(1)
+                count += 1
+            plt.clf()
+            open, close, high, low = y_vals, y_vals, y_vals, y_vals
+            period = len(open)
+            frequency = ""
+            # if num_days == "1":
+            #     frequency = "5min"
+            # elif num_days != "max" and (int(num_days) <= 90 and int(num_days) > 1):
+            #     frequency = "1H"
+            # else:
+            #     frequency = "4D"
+            dti = pd.date_range(start = x_vals[0], end = x_vals[len(x_vals)-1], periods = period)
+            # print(dti2)
+            # dti = pd.date_range(time_conv, periods=period, freq=frequency)
+            ohlc = {"opens":open, "highs":high, "lows":low, "closes":close, "volumes":volume}
+            ohlc = pd.DataFrame(data = ohlc, index = dti)
+            ohlc.columns = ['Open', 'High', 'Low', 'Close', 'Volume'] #these two lines solved the dataframe problem
+            ohlc.index.name = "Date"
+            # plot and make it look good
+            percent_change = ((close[len(close) - 1] - close[0]) / close[0]) * 100
+            percent_change = round(percent_change, 2)
+            changed, days = "", ""
+            # change title based on days
+            # if num_days == "1":
+            #     days = "the past 24 hours"
+            # elif num_days == "MAX" or num_days == "max":
+            #     days = "Within Lifetime"
+            # else:
+            #     days = "Past " + num_days + " Days"
+            # # change title based on percent
+            # if percent_change > 0:
+            #     changed = "+"
+            # else:
+            #     changed = ""
+
+            percent_change = "{:,}".format(percent_change) # had to do it here because this converts it to a string, need it as a int above
+            # title = "\n" + "\n" + coin_label + "'s price " + changed + percent_change + "% within " + days
+            coin_label = self.change_cap(coin_label)
+            title1 = "\n" + "\n" + coin_label + " " + "Historcal TVL: " + percent_change + "% - " + "Past " + num_days
+            if type == 2:
+                coin_label2 = self.change_cap(coin_name2.lower())
+                title1 = "\n" + "\n" + coin_label + "/" + coin_label2 + " " + changed + percent_change + "% - " + days
+            mc = mpf.make_marketcolors(
+                                up='tab:blue',down='tab:red',
+                                wick={'up':'blue','down':'red'},
+                                volume='tab:green',
+                               )
+            edited_style  = mpf.make_mpf_style(gridstyle = '-', facecolor = "lightgray", gridcolor = "white", edgecolor = "black", base_mpl_style = "classic", marketcolors=mc)
+            if type == 1:
+                fig, axlist = mpf.plot(ohlc, type='line', title = title1, figratio = (16,10), ylabel = 'Price - USD ($)', style = edited_style, returnfig = True)
+                ax1 = axlist[0]
+                # ax1.yaxis.set_major_formatter(tick.FormatStrFormatter('%.8f'))
+                ax1.yaxis.set_major_formatter(tick.FuncFormatter(reformat_large_tick_values))
+                fig.savefig('ctvl.png')
+            else:
+                mpf.plot(ohlc, type='line', title = title1, figratio = (16,10), ylabel = coin_label + "/" + coin_label2, style = edited_style, savefig = "ctvl.png")
+            return ""
+        else:
+            return "error"
 
     # retreive data and create candle chart of any coin
     def get_candle_chart(self, coin_name, num_days):
@@ -579,7 +569,6 @@ class discord_bot:
             return "e"
 
         data = self.cg.get_coin_by_id(id= coin_name)
-        print(data["market_data"])
         csupply = data["market_data"]["circulating_supply"]
         tsupply = data["market_data"]["total_supply"]
         msupply = data["market_data"]["max_supply"]
@@ -849,8 +838,21 @@ class discord_bot:
         return embedResponse
 
     def future(self):
-        response = "BAND is a shitcoin [I'm not changing this Shi]"
+        response = "BAND is a shitcoin"
         return response
+
+    def valid_num_days(self, num_days):
+        temp = str(num_days)
+        date_types = ["d", "w", "m", "y"]
+        date_intereval = ["1", "7", "30", "365"]
+        if not temp.isdigit():
+            temp = temp.lower()
+            if len(temp) == 2 and temp[0].isdigit() and any(date_type in temp[1] for date_type in date_types):
+                if temp[1] == "y":
+                    num_days = str(int(temp[0]) * 365)
+            elif temp != "max":
+                return False
+        return True
 
     def error(self):
         embedResponse = discord.Embed(color=0xF93A2F)
@@ -867,6 +869,38 @@ class discord_bot:
         for member in guild.members:
             if member.id == mem_id:
                 return member
+
+def reformat_large_tick_values(tick_val, pos):
+    """
+    Turns large tick values (in the billions, millions and thousands) such as 4500 into 4.5K and also appropriately turns 4000 into 4K (no zero after the decimal).
+    """
+    if tick_val >= 1000000000:
+        val = round(tick_val/1000000000, 1)
+        new_tick_format = '{:}B'.format(val)
+    elif tick_val >= 1000000:
+        val = round(tick_val/1000000, 1)
+        new_tick_format = '{:}M'.format(val)
+    elif tick_val >= 1000:
+        val = round(tick_val/1000, 1)
+        new_tick_format = '{:}K'.format(val)
+    elif tick_val < 1000:
+        new_tick_format = round(tick_val, 1)
+    else:
+        new_tick_format = tick_val
+
+    # make new_tick_format into a string value
+    new_tick_format = str(new_tick_format)
+
+    # code below will keep 4.5M as is but change values such as 4.0M to 4M since that zero after the decimal isn't needed
+    index_of_decimal = new_tick_format.find(".")
+
+    if index_of_decimal != -1:
+        value_after_decimal = new_tick_format[index_of_decimal+1]
+        if value_after_decimal == "0":
+            # remove the 0 after the decimal point since it's not needed
+            new_tick_format = new_tick_format[0:index_of_decimal] + new_tick_format[index_of_decimal+2:]
+
+    return new_tick_format
 
     # # retreive data and create line chart of any coin
     # def get_coin_chart(self, coin_name, num_days):
@@ -919,3 +953,97 @@ class discord_bot:
     #         return True
     #     else:
     #         return False
+
+    # # chart of two coins for instance link/btc
+    # def get_line_chart_two(self, coin_name, coin_name2, num_days):
+    #     #coin label work
+    #     coin_label = ""
+    #     coin_label2 = ""
+    #     coin_name = coin_name.lower()
+    #     coin_label2 = coin_name2.lower()
+    #     coin_label = self.check_coin(coin_name)
+    #     coin_label2 = self.check_coin(coin_name2)
+    #     #checking if num days is valid
+    #     temp = str(num_days)
+    #     if not temp.isdigit():
+    #         temp = temp.lower()
+    #         if temp != "max":
+    #             return False
+    #
+    #     if self.check_coin(coin_name) != "":
+    #         charts = self.cg.get_coin_market_chart_by_id(id = coin_label, vs_currency='usd', days = num_days)
+    #         charts2 = self.cg.get_coin_market_chart_by_id(id = coin_label2, vs_currency = 'usd', days = num_days)
+    #         plt.clf()
+    #         x_vals = []
+    #         y_vals = []
+    #         count = 0
+    #         open, close, high, low, volume = [], [], [], [], []
+    #         min = len(charts["prices"])
+    #         if min > len(charts2["prices"]):
+    #             min = len(charts2["prices"])
+    #         for point in charts['prices']:
+    #             if count == min:
+    #                 break
+    #             if count == 0:
+    #                 time_conv = datetime.utcfromtimestamp(point[0] / 1000).strftime('%Y-%m-%d')
+    #             x_vals.append(time_conv)
+    #             y_vals.append(point[1])
+    #             volume.append(1)
+    #             count += 1
+    #         count = 0
+    #         for point in charts2['prices']:
+    #             if count == min:
+    #                 break
+    #             y_vals[count] = y_vals[count] / point[1]
+    #             count += 1
+    #         # create the date and dataframe
+    #         open = y_vals
+    #         close = y_vals
+    #         high = y_vals
+    #         low = y_vals
+    #         period = len(open)
+    #         frequency = ""
+    #         if num_days == "1":
+    #             frequency = "5min"
+    #         elif num_days != "max" and (int(num_days) <= 90 and int(num_days) > 1):
+    #             frequency = "1H"
+    #         else:
+    #             frequency = "4D"
+    #         dti = pd.date_range(time_conv, periods=period, freq=frequency)
+    #         ohlc = {"opens":open, "highs":high, "lows":low, "closes":close, "volumes":volume}
+    #         ohlc = pd.DataFrame(data = ohlc, index = dti)
+    #         ohlc.columns = ['Open', 'High', 'Low', 'Close', 'Volume'] #these two lines solved the dataframe problem
+    #         ohlc.index.name = "Date"
+    #         # plot and make it look good
+    #         percent_change = ((close[len(close) - 1] - close[0]) / close[0]) * 100
+    #         percent_change = round(percent_change, 2)
+    #         changed, days = "", ""
+    #         # change title based on days
+    #         if num_days == "1":
+    #             days = "the past 24 hours"
+    #         elif num_days == "MAX" or num_days == "max":
+    #             days = "Within Lifetime"
+    #         else:
+    #             days = "Past " + num_days + " Days"
+    #         # change title based on percent
+    #         if percent_change > 0:
+    #             changed = "+"
+    #         else:
+    #             changed = ""
+    #
+    #         percent_change = "{:,}".format(percent_change) # had to do it here because this converts it to a string, need it as a int above
+    #         # title = "\n" + "\n" + coin_label + "'s price " + changed + percent_change + "% within " + days
+    #         coin_label = self.change_cap(coin_name.lower())
+    #         coin_label2 = self.change_cap(coin_name2.lower())
+    #         title1 = "\n" + "\n" + coin_label + "/" + coin_label2 + " " + changed + percent_change + "% - " + days
+    #         mc = mpf.make_marketcolors(
+    #                             up='tab:blue',down='tab:red',
+    #                             wick={'up':'blue','down':'red'},
+    #                             volume='tab:green',
+    #                            )
+    #
+    #         edited_style  = mpf.make_mpf_style(gridstyle = '-', facecolor = "lightgray", gridcolor = "white", edgecolor = "black", base_mpl_style = "classic", marketcolors=mc)
+    #         mpf.plot(ohlc, type='line', title = title1, figratio = (16,10), ylabel = coin_label + "/" + coin_label2, style = edited_style, savefig = "chart.png")
+    #         return ""
+    #     else:
+    #         return "error"

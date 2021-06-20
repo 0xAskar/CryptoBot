@@ -6,6 +6,7 @@ Features:
 - Coin updates for price, marketcap, % change (5 minute lag from CoinGecko)
 - Line charts (including multiple cryptocurrency pairs - LINKBTC)
 - Candle charts (only single pair against usd)
+- Historical TVL (Total Value Locked) charts (only single pair against USD)
 - ATH, ATL, and Range stats
 - Supply of a coin
 - Eth gas updates
