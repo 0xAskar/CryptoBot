@@ -167,6 +167,14 @@ if __name__ == "__main__":
                         await message.channel.send(embed = db.error())
                     else:
                         await message.channel.send(ctvl_output)
+                elif len(str_divide) == 2:
+                    ctvl_output = db.get_tvl_chart(str_divide[1], "", "1m", 1)
+                    if ctvl_output == "":
+                        await message.channel.send(file = discord.File('ctvl.png'))
+                    elif ctvl_output == "error":
+                        await message.channel.send(embed = db.error())
+                    else:
+                        await message.channel.send(ctvl_output)
             elif str_divide[0] == "candle":
                 if len(str_divide) == 3 and str(str_divide[2]).isdigit():
                     candle_output = db.get_candle_chart(str_divide[1], str_divide[2])

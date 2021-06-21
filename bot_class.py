@@ -262,6 +262,11 @@ class discord_bot:
                 y_vals.append(one_int["tvlUSD"])
                 volume.append(1)
                 count += 1
+            # check to see if the data is reversed
+            if x_vals[0] > x_vals[1]:
+                # reverse lists
+                x_vals = x_vals[::-1]
+                y_vals = y_vals[::-1]
             plt.clf()
             open, close, high, low = y_vals, y_vals, y_vals, y_vals
             period = len(open)
