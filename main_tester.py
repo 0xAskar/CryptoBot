@@ -18,10 +18,15 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import praw
 import json
-
+import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
+import bot_ids
+from guppy import hpy
 
 if __name__ == "__main__":
     # main variables
+    h = hpy()
     bot_token = bot_ids.bot_token_tester
     bot_id = bot_ids.bot_id_tester
     askar_id = 372010870756081675
@@ -32,6 +37,7 @@ if __name__ == "__main__":
     last_fetch_time = ""
     count = 0
     guild_p = "/r/Pennystocks"
+    guild_pp = "Playground"
     last_contract = "tst"
     logging.basicConfig(filename="log_test.txt", level=logging.DEBUG)
 
@@ -45,7 +51,7 @@ if __name__ == "__main__":
     print(db.cg.ping())
     # main functions that need to run
 
-    @loop(seconds=10.0)
+    @loop(seconds=0.001)
     async def background_task():
         await bot.wait_until_ready()
         bot_list = []
@@ -149,14 +155,11 @@ if __name__ == "__main__":
         con = "0x85eee30c52b0b379b046fb0f85f4f3dc3009afec"
         ouput = db.cg.get_token_price(id = "ethereum", contract_addresses = con, vs_currencies = "USD", include_market_cap = "true", include_24hr_change = "true")
         # print(output["market_data"]["total_value_locked"]["usd"])
-        api_key = "a13e3afa930e1666c12f076cace5f14a24435c1829c08f64ad90d722dd78"
-        params = {"api-key": api_key, "project": "aave"}
-        params = {"api-key": api_key}
-        # link = "https://data-api.defipulse.com/api/v1/defipulse/api/GetHistory?api-key=" + api_key + "&project=aave&period=1m"
+        # link = "https://data-api.defipulse.com/api/v1/rekto/api/total-damage?api-key=" + bot_ids.defipulse_api_key
         # response = requests.get(link)
         # output = response.json()
-        # for something in output:
-        #     print(something["timestamp"])
+        # print(output)
+
 
     @bot.event
     async def on_message(message):
@@ -252,6 +255,15 @@ if __name__ == "__main__":
                         await message.channel.send(candle_output)
                 else:
                     await message.channel.send(embed = db.error())
+            elif str_divide[0] == "list" and len(str_divide) > 2:
+                suggester = db.find_member(bot, guild_pp, message.author.id)
+                for coin in str_divide:
+                    if coin != "list":
+                        result = db.get_coin_price(coin)
+                        if result == "":
+                            await message.channel.send(embed = db.error())
+                        else:
+                            await suggester.send(embed = db.get_coin_price(coin))
             # if user wants to check conversion rates
             elif str_divide[0] == "tvl-chart" or str_divide[0] == "tvlc" or str_divide[0] == "ctvl":
                 if len(str_divide) == 3:
@@ -339,6 +351,8 @@ if __name__ == "__main__":
                     await message.channel.send(last_fetch_time)
                 elif command == "trendy":
                     await message.channel.send(embed = db.get_trending())
+                elif command == "rekt":
+                    await message.channel.send(embed = db.get_rekt())
                 elif command == 'future':
                     await message.channel.send(db.future())
                 elif command == "test":
@@ -419,3 +433,4 @@ if __name__ == "__main__":
     # run background task and bot indefintely
     background_task.start()
     bot.run(bot_token)
+    # print(h.heap())

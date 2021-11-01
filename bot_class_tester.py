@@ -24,7 +24,13 @@ from selenium.webdriver.chrome.options import Options
 from PIL import Image
 import praw
 import copy
+import urllib.parse
+import urllib.request
+from urllib.request import Request, urlopen
 import time
+import json
+import re
+
 
 class discord_bot:
     # api instance
@@ -94,7 +100,12 @@ class discord_bot:
                 embedResponse.add_field(name= coin_name + " Price", value= "["  + "$" + str(price) + "](https://www.coingecko.com/en/coins/" + coin_name_temp + ")", inline=False)
                 embedResponse.add_field(name= coin_name + " Percent Change (24hr)", value= str(percent_change) + "%", inline=False)
                 embedResponse.add_field(name= coin_name + " Market Cap", value= "$" + mc, inline=False)
+                response1 = "```" + coin_name + "'s price: $" + str(price) + "\n" + "Percent Change (24h): " + str(percent_change) + "%" + "\n" + "Market Cap: embedResponse = discord.Embed(color=0xFF8C00)
+                embedResponse.add_field(name= coin_name + " Price", value= "["  + "$" + str(price) + "](https://www.coingecko.com/en/coins/" + coin_name_temp + ")", inline=False)
+                embedResponse.add_field(name= coin_name + " Percent Change (24hr)", value= str(percent_change) + "%", inline=False)
+                embedResponse.add_field(name= coin_name + " Market Cap", value= "$" + mc, inline=False)
                 response1 = "```" + coin_name + "'s price: $" + str(price) + "\n" + "Percent Change (24h): " + str(percent_change) + "%" + "\n" + "Market Cap: $" + str(market_cap) + "```"
+                # response2 = "```" + coin_name + "'s price: $" + str(price) + ", " + "Percent Change (24h): " + str(percent_change) + "%" + "\n" + "Market Cap: $" + str(market_cap) + "```"$" + str(market_cap) + "```"
                 # response2 = "```" + coin_name + "'s price: $" + str(price) + ", " + "Percent Change (24h): " + str(percent_change) + "%" + "\n" + "Market Cap: $" + str(market_cap) + "```"
                 return embedResponse
         return ""
@@ -514,6 +525,31 @@ class discord_bot:
             else:
                 return "e"
 
+    # find trending coins on coingecko
+    def get_rekt(self):
+        count = 0
+        # link = "https://data-api.defipulse.com/api/v1/rekto/api/top10?a pi-key=" + bot_ids.defipulse_api_key
+        # link = "https://api.rek.to/api/top10?api-key=" + bot_ids.defipulse_api_key
+        # link = "https://api.rek.to/api/top10?"
+        # response = requests.get(link)
+        # # output = response.json()
+        # # js = json.loads(data.decode("utf-8"))
+        # # print(js)
+        # # print(output);
+        # ids, amounts = "", ""
+        # for idiot in output["top10"]:
+        #     if count < 5:
+        #         ids += str(idiot["id"]) + "\n"
+        #         amounts += "$" + str(self.check_large(idiot["value_usd"])) + "\n"
+        #         # amounts += str(self.check_large(int(idiot["value_usd"]))) +  "\n"
+        #         count += 1
+        # embedResponse = discord.Embed(title="Top 5 Rekts (Past 24hrs)", color=0x6d37da)
+        # embedResponse.add_field(name = "Rekted Amount (USD)", value = amounts)
+        # embedResponse.add_field(name = "The Rekt-ed", value = ids)
+        embedResponse = discord.Embed(title="Error with API", color=0x6d37da)
+        embedResponse.add_field(name = "Depreciated", value = "Defipulse depreciated the Rekt API endpoints")
+        return embedResponse
+
 
     # get an image of a coin
     def get_image(self, coin_name):
@@ -588,6 +624,10 @@ class discord_bot:
         embedResponse.add_field(name = coin_name + " Total Supply", value = tsupply, inline=False)
         embedResponse.add_field(name = coin_name + " Max Supply", value = msupply, inline=False)
         return embedResponse
+
+    # def get_list(self, coin_array):
+    #     for coin in coin_array:
+    #         self.coin_name(coin)
 
     # find trending coins on coingecko
     def get_trending(self):
@@ -879,6 +919,7 @@ def reformat_large_tick_values(tick_val, pos):
     """
     Turns large tick values (in the billions, millions and thousands) such as 4500 into 4.5K and also appropriately turns 4000 into 4K (no zero after the decimal).
     """
+    check = True
     if tick_val >= 1000000000:
         val = round(tick_val/1000000000, 1)
         new_tick_format = '{:}B'.format(val)
@@ -888,24 +929,35 @@ def reformat_large_tick_values(tick_val, pos):
     elif tick_val >= 1000:
         val = round(tick_val/1000, 1)
         new_tick_format = '{:}K'.format(val)
-    elif tick_val < 1000:
-        new_tick_format = round(tick_val, 1)
     else:
-        new_tick_format = tick_val
+        check = False
+        check2 = True
+        x = 1
+        exp = 1
+        while (check2):
+            if tick_val > x:
+                check2 = False
 
-    # make new_tick_format into a string value
-    new_tick_format = str(new_tick_format)
+            exp += 1
+        new_tick_format = round(tick_val, 3)
 
-    # code below will keep 4.5M as is but change values such as 4.0M to 4M since that zero after the decimal isn't needed
-    index_of_decimal = new_tick_format.find(".")
+    if check == True:
+        # make new_tick_format into a string value
+        new_tick_format = str(new_tick_format)
 
-    if index_of_decimal != -1:
-        value_after_decimal = new_tick_format[index_of_decimal+1]
-        if value_after_decimal == "0":
-            # remove the 0 after the decimal point since it's not needed
-            new_tick_format = new_tick_format[0:index_of_decimal] + new_tick_format[index_of_decimal+2:]
+        # code below will keep 4.5M as is but change values such as 4.0M to 4M since that zero after the decimal isn't needed
+        index_of_decimal = new_tick_format.find(".")
+
+        if index_of_decimal != -1:
+            value_after_decimal = new_tick_format[index_of_decimal+1]
+            if value_after_decimal == "0":
+                # remove the 0 after the decimal point since it's not needed
+                new_tick_format = new_tick_format[0:index_of_decimal] + new_tick_format[index_of_decimal+2:]
 
     return new_tick_format
+
+def check_decimal():
+    return ""
 
     # # retreive data and create line chart of any coin
     # def get_coin_chart(self, coin_name, num_days):

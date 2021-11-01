@@ -5,7 +5,6 @@ from bot_class import discord_bot
 from dotenv import load_dotenv
 import asyncio
 import discord
-import logging
 import datetime
 from discord.ext import tasks, commands
 from discord.ext.tasks import loop
@@ -28,7 +27,7 @@ if __name__ == "__main__":
     askar_name = ""
     last_fetch_time = ""
     last_contract = "tst"
-    logging.basicConfig(filename="log.log", level=logging.INFO)
+    # logging.basicConfig(filename="log.log", level=logging.INFO)
 
     # load up the coingecko, etherscan, and discord api's
     load_dotenv()
@@ -55,17 +54,18 @@ if __name__ == "__main__":
                         askar_member = member
                         askar_name = member.name
             # update the name to the price of bitcoin and the status to the price of eth
-            logging.info(db.cg.ping())
+            # logging.info(db.cg.ping())
             # update all the bot in each server
             for bot_x in bot_list:
                 await bot_x.edit(nick = db.btc_status())
                 await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= db.eth_status()))
-            logging.info("Finished Updating Bot")
+            # logging.info("Finished Updating Bot")
             global last_fetch_time
             last_fetch_time = datetime.datetime.now()
         except:
             print("Unsuspected error")
             print(datetime.datetime.now())
+        return
 
     @bot.event
     async def on_ready():
@@ -87,11 +87,13 @@ if __name__ == "__main__":
         print(f"{bot_names[0]} (x" + str(len(bot_names)) + ") has connected to Discord!")
         global last_fetch_time
         last_fetch_time = datetime.datetime.now()
+        return
 
     @bot.event
     async def on_message(message):
         # retrieve message
         info = message.content
+        useless_words = ["future", "bought", "ban", "mute", "sold", "undo", "rank", "tempmute", "whois"]
         command = ""
         info = info.lower()
         # if message is from a bot, return
@@ -105,11 +107,12 @@ if __name__ == "__main__":
             if len(str_divide) < 1:
                 return
             # if user asks for help on commands
-            if command == "crypto-help":
-                response = db.help
-                suggester = db.find_member(bot, guild_p, message.author.id)
-                await suggester.send(response)
-                await message.add_reaction('\N{THUMBS UP SIGN}')
+            if command == "crypto-help" or command == "help" or command == "chelp":
+                response = db.help()
+                # suggester = db.find_member(bot, guild_p, message.author.id)
+                # await suggester.send(response)
+                # await message.add_reaction('\N{THUMBS UP SIGN}')
+                await message.channel.send(response);
             # if user wants to send a suggestion
             elif str_divide[0] == "suggestion" or str_divide[0] == "suggestions":
                 if len(str_divide) > 1:
@@ -157,6 +160,16 @@ if __name__ == "__main__":
                     await message.channel.send(embed = db.error())
                     return
             # if user requests candle chart of a coin
+            elif str_divide[0] == "list" and len(str_divide) > 2:
+                suggester = db.find_member(bot, guild_p, message.author.id)
+                for coin in str_divide:
+                    if coin != "list":
+                        result = db.get_coin_price(coin)
+                        if result == "":
+                            await message.channel.send(embed = db.error())
+                        else:
+                            await suggester.send(embed = db.get_coin_price(coin))
+                await message.add_reaction('\N{THUMBS UP SIGN}')
             elif str_divide[0] == "tvl-chart" or str_divide[0] == "tvlc" or str_divide[0] == "ctvl":
                 if len(str_divide) == 3:
                     # line_output = db.get_line_chart_two(str_divide[1], str_divide[2],str_divide[3])
@@ -261,8 +274,8 @@ if __name__ == "__main__":
                 for word in useless_words:
                     if str_divide[0] == word:
                         pass
-                else:
-                    await message.channel.send(embed = db.error())
+                # else:
+                #     await message.channel.send(embed = db.error())
             elif len(str_divide) == 1:
                 # if user wants events
                 # if command == "events":
@@ -279,6 +292,8 @@ if __name__ == "__main__":
                     await message.channel.send(embed = db.get_trending())
                 elif command == 'future':
                     await message.channel.send(db.future())
+                elif command == "rekt":
+                    await message.channel.send(embed = db.get_rekt())
                 # if user wants info about global defi stats
                 elif command == 'global-defi':
                     await message.channel.send(db.get_global_defi_data())
@@ -317,14 +332,16 @@ if __name__ == "__main__":
                     embedResponse.set_image(url="attachment://picycle.png")
                     await message.channel.send(file = discord.File("picycle.png"), embed = embedResponse)
                 # if user wants info about any coin
+                elif str_divide[0] == "servers":
+                    result = db.get_servers(bot)
+                    await message.channel.send(result)
                 else:
                     result = db.get_coin_price(command)
-                    if result == "":
-                        await message.channel.send(embed = db.error())
-                    else:
+                    if result != "":
                         await message.channel.send(embed = db.get_coin_price(command))
-            else:
-                    await message.channel.send(embed = db.error())
+            # else:
+            #         await message.channel.send(embed = db.error())
+            return
 
     # run background task and bot indefintely
     background_task.start()

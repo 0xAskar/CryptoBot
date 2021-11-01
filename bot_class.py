@@ -1,6 +1,5 @@
 import math
 import bot_ids
-import logging
 from math import log10, floor
 import requests
 import pandas as pd
@@ -32,7 +31,7 @@ class discord_bot:
         cache_expire_after=5,
     )
 
-    logging.basicConfig(filename="log.log", level=logging.INFO)
+    # logging.basicConfig(filename="log.log", level=logging.INFO)
 
     global the_coin_list
     the_coin_list = copy.deepcopy(cg.get_coins_list())
@@ -45,10 +44,10 @@ class discord_bot:
             price = round(price,2)
             price = "{:,}".format(price)
             response = "Bitcoin - $" + str(price)
-            logging.info("Logged BTC price at " + str(datetime.now()))
+            # logging.info("Logged BTC price at " + str(datetime.now()))
             return response
         else:
-            logging.warning("Error from CoinGecko at: " + str(datetime.now()))
+            # logging.warning("Error from CoinGecko at: " + str(datetime.now()))
             return "CoinGecko Error"
 
     def eth_status(self):
@@ -58,10 +57,10 @@ class discord_bot:
             price = round(price,2)
             price = "{:,}".format(price)
             response = "Ethereum: $" + str(price)
-            logging.info("Logged ETH price at " + str(datetime.now()))
+            # logging.info("Logged ETH price at " + str(datetime.now()))
             return response
         else:
-            logging.warning("Error from CoinGecko at: " + str(datetime.now()))
+            # logging.warning("Error from CoinGecko at: " + str(datetime.now()))
             return "Coingecko Errors"
 
     def get_coin_price(self, coin_name):
@@ -561,6 +560,28 @@ class discord_bot:
         embedResponse.add_field(name = "Top Trending Coins on CoinGecko", value = output)
         return embedResponse
 
+    # find trending coins on coingecko
+    def get_rekt(self):
+        count = 0
+        # link = "https://data-api.defipulse.com/api/v1/rekto/api/top10?api-key=" + bot_ids.defipulse_api_key
+        # link = "https://api.rek.to/api/top10?api-key=" + bot_ids.defipulse_api_key
+        # response = requests.get(link)
+        # output = response.json()
+        # ids, amounts = "", ""
+        # for idiot in output["top10"]:
+        #     if count < 5:
+        #         ids += str(idiot["id"]) + "\n"
+        #         amounts += "$" + str(self.check_large(idiot["value_usd"])) + "\n"
+        #         # amounts += str(self.check_large(int(idiot["value_usd"]))) +  "\n"
+        #         count += 1
+        # embedResponse = discord.Embed(title="Top 5 Rekts (Past 24hrs)", color=0x6d37da)
+        # embedResponse.add_field(name = "Rekted Amount (USD)", value = amounts)
+        # embedResponse.add_field(name = "The Rekt-ed", value = ids)
+        embedResponse = discord.Embed(title="Error with API", color=0x6d37da)
+        embedResponse.add_field(name = "Depreciated", value = "Defipulse depreciated the Rekt API endpoints")
+        return embedResponse
+
+
     def get_mcap_to_tvl_ratio(self, coin):
         coin_name = ""
         coin_name = self.check_coin(coin)
@@ -841,7 +862,54 @@ class discord_bot:
             if member.id == mem_id:
                 return member
 
+    def get_servers(self, bot):
+        all = ""
+        counter = 1
+        for guild in bot.guilds:
+            mem_count = guild.member_count
+            all += "Server " + str(counter) + ": " + str(guild.name) + " (Size: " + str(mem_count) + ")" + "\n"
+            counter += 1
+        return all
+
+
+    def help(self):
+        help_info =  "```CryptoBot gives you sends live updates of " + \
+        "any cryptocurrency!" + "\n" + "\n" + \
+        "Commands:" + "\n" + "\n" + \
+        "   Price Command: ![coin symbol/name], '!btc' or '!bitcoin' - retreive price information about a coin" + "\n" + "\n" + \
+        "   Chart Command: '!chart btc 5' <chart> <coin> <num days> - retreive the line chart of a coin, only support USD as of now (ex: !chart link 30)" + "\n" + "\n" + \
+        "   Chart Command: '!chart btc 5' <chart> <coin1> <coin2> <num days> - retreive the line chart of two coins coupled (ex: !chart link btc 30)" + "\n" + "\n" + \
+        "   Candle Command: '!candle btc 5' <chart> <coin_name/symbol> <num days>, "\
+        "days has to be one of these:" + "\n" + "   '1','7','14','30','90','180','365','MAX' - retreive the candle chart of a coin" + "\n" + "\n" + \
+        "   Suggestion Command: !suggestion or !suggestions do this' <suggestion> <message> - send a suggestion for the bot" + "\n" + "\n" + \
+        "   Gas Command: '!gas' - get information about gwei prices" + "\n" + "\n" + \
+        "   Convert Command: '!convert <num> <coin1> <coin2>' - get conversion rate of num of coin1 in number of coin2 (ex: !convert 1000 usdc btc)" + "\n" + "\n" + \
+        "   Global Defi Stats Command: '!global-defi' - get global information about defi" + "\n" + "\n" + \
+        "   Top Trending Coins Command: '!trendy - get the top trending coins on CoinGecko" + "\n" + "\n" + \
+        "   Supply Command: '!supply <coin> - get the circulating and maximum supply of a coin" + "\n" + "\n" + \
+        "   Golden Ratio Multiple Indicator (BTC) (Unavailable): '!grm-chart" + "\n" + "\n" + \
+        "   Puell Multiple Indicator (BTC) (Unavailable): '!puell-chart" + "\n" + "\n" + \
+        "   MVRV Z-Score Indicator (BTC) (Unavailable): '!mvrv-chart" + "\n" + "\n" + \
+        "   PI Cycle Top Indicator (BTC) (Unavailable): '!pi-chart" + "\n" + "\n" + \
+        "   ATH, ATL, Range Commands: '!ath [coin], !atl [coin], !range [coin]" + "\n" + "\n" + \
+        "   Image Command: '!image [coin]" + "\n" + "\n" + \
+        "   TVL Command: '!tvl [coin]" + "\n" + "\n" + \
+        "   Mcap to TVL Ratio Command: '!tvl-ratio [coin]" + "\n" + "\n" + \
+        "   Defisocks (Unavailable): '!defisocks" + "\n" + "\n" + \
+        "   ATH, ATL, Range: '!ath [coin], !atl [coin], !range [coin]" + "\n" + "\n" + \
+        "Credits to CoinGecko® and Etherscan® for their free APIs!```"
+
+        return help_info;
+
+
+
+
+#############  end of discord_bot class ###############
+
+
 def reformat_large_tick_values(tick_val, pos):
+    # go the function from below site
+    # https://dfrieds.com/data-visualizations/how-format-large-tick-values.html
     """
     Turns large tick values (in the billions, millions and thousands) such as 4500 into 4.5K and also appropriately turns 4000 into 4K (no zero after the decimal).
     """
@@ -855,7 +923,7 @@ def reformat_large_tick_values(tick_val, pos):
         val = round(tick_val/1000, 1)
         new_tick_format = '{:}K'.format(val)
     elif tick_val < 1000:
-        new_tick_format = round(tick_val, 1)
+        new_tick_format = round(tick_val, 3)
     else:
         new_tick_format = tick_val
 
@@ -872,28 +940,3 @@ def reformat_large_tick_values(tick_val, pos):
             new_tick_format = new_tick_format[0:index_of_decimal] + new_tick_format[index_of_decimal+2:]
 
     return new_tick_format
-    help =  "```CryptoBot gives you sends live updates of " + \
-    "any cryptocurrency!" + "\n" + "\n" + \
-    "Commands:" + "\n" + "\n" + \
-    "   Price Command: ![coin symbol/name], '!btc' or '!bitcoin' - retreive price information about a coin" + "\n" + "\n" + \
-    "   Chart Command: '!chart btc 5' <chart> <coin> <num days> - retreive the line chart of a coin, only support USD as of now (ex: !chart link 30)" + "\n" + "\n" + \
-    "   Chart Command: '!chart btc 5' <chart> <coin1> <coin2> <num days> - retreive the line chart of two coins coupled (ex: !chart link btc 30)" + "\n" + "\n" + \
-    "   Candle Command: '!candle btc 5' <chart> <coin_name/symbol> <num days>, "\
-    "days has to be one of these:" + "\n" + "   '1','7','14','30','90','180','365','MAX' - retreive the candle chart of a coin" + "\n" + "\n" + \
-    "   Suggestion Command: !suggestion or !suggestions do this' <suggestion> <message> - send a suggestion for the bot" + "\n" + "\n" + \
-    "   Gas Command: '!gas' - get information about gwei prices" + "\n" + "\n" + \
-    "   Convert Command: '!convert <num> <coin1> <coin2>' - get conversion rate of num of coin1 in number of coin2 (ex: !convert 1000 usdc btc)" + "\n" + "\n" + \
-    "   Global Defi Stats Command: '!global-defi' - get global information about defi" + "\n" + "\n" + \
-    "   Top Trending Coins Command: '!trendy - get the top trending coins on CoinGecko" + "\n" + "\n" + \
-    "   Supply Command: '!supply <coin> - get the circulating and maximum supply of a coin" + "\n" + "\n" + \
-    "   Golden Ratio Multiple Indicator (BTC): '!grm-chart" + "\n" + "\n" + \
-    "   Puell Multiple Indicator (BTC): '!puell-chart" + "\n" + "\n" + \
-    "   MVRV Z-Score Indicator (BTC): '!mvrv-chart" + "\n" + "\n" + \
-    "   PI Cycle Top Indicator (BTC): '!pi-chart" + "\n" + "\n" + \
-    "   ATH, ATL, Range Commands: '!ath [coin], !atl [coin], !range [coin]" + "\n" + "\n" + \
-    "   Image Command: '!image [coin]" + "\n" + "\n" + \
-    "   TVL Command: '!tvl [coin]" + "\n" + "\n" + \
-    "   Mcap to TVL Ratio Command: '!tvl-ratio [coin]" + "\n" + "\n" + \
-    "   Defisocks: '!defisocks" + "\n" + "\n" + \
-    "   ATH, ATL, Range: '!ath [coin], !atl [coin], !range [coin]" + "\n" + "\n" + \
-    "Credits to CoinGecko® for the free API!```"
