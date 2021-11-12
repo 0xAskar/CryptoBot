@@ -1,6 +1,5 @@
 import bot_ids
 import os
-import logging
 import bot_class_tester
 from bot_class_tester import discord_bot
 from dotenv import load_dotenv
@@ -9,13 +8,10 @@ import discord
 import datetime
 from discord.ext import tasks, commands
 from discord.ext.tasks import loop
-from discord.ext import commands
 import sys
 import urllib.request
 import requests
 from urllib.request import Request, urlopen
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
 import praw
 import json
 import requests
@@ -23,6 +19,10 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 import bot_ids
 from guppy import hpy
+import messari
+from messari import assets
+import messari.timeseries
+from messari.timeseries import get_metric_timeseries
 
 if __name__ == "__main__":
     # main variables
@@ -39,7 +39,6 @@ if __name__ == "__main__":
     guild_p = "/r/Pennystocks"
     guild_pp = "Playground"
     last_contract = "tst"
-    logging.basicConfig(filename="log_test.txt", level=logging.DEBUG)
 
     # load up the coingecko, etherscan, and discord api's
     load_dotenv()
@@ -51,7 +50,7 @@ if __name__ == "__main__":
     print(db.cg.ping())
     # main functions that need to run
 
-    @loop(seconds=0.001)
+    @loop(seconds=10)
     async def background_task():
         await bot.wait_until_ready()
         bot_list = []
@@ -67,7 +66,6 @@ if __name__ == "__main__":
         # update the name to the price of bitcoin and the status to the price of eth
         # while not bot.is_closed():
         #     for bot_x in bot_list:
-        logging.info(db.cg.ping())
         # await bot_x.edit(nick = db.btc_status())
         # specific_channel = db.get_channel(802586307766779904)
         # global last_contract
@@ -85,7 +83,6 @@ if __name__ == "__main__":
             for bot_x in bot_list:
                 await bot_x.edit(nick = count)
                 await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= db.eth_status()))
-            logging.info("Finished Updating Bot")
             count += 1
             global last_fetch_time
             last_fetch_time = datetime.datetime.now()
@@ -121,18 +118,6 @@ if __name__ == "__main__":
         # print(output["market_data"]["circulating_supply"])
         # for x in output:
             # print(x)
-        global last_fetch_time
-        last_fetch_time = datetime.datetime.now()
-        exchanges = db.cg.get_exchanges_id_name_list()
-        # volume = db.cg.get_exchanges_volume_chart_by_id(id = "binance", days = "14")
-        # print(db.get_volume_chart("14"))
-        # print(db.cg.get_coins_list())
-        output = db.cg.get_coin_by_id(id = "aave")
-        # print(output)
-        image_cg = output["image"]["large"]
-        # print(output["market_data"]["ath"])
-        # print(output["market_data"]["ath"]["usd"])
-        # print(output["market_data"]["ath_date"])
         # print(output[price_change_percentage_24])
         # urllib.request.urlretrieve("https://assets.coingecko.com/coins/images/12504/small/uniswap-uni.png?1600306604", "uni.png")
         # req = requests.get(image_cg, headers={'User-Agent': 'Mozilla/5.0'})
@@ -144,21 +129,23 @@ if __name__ == "__main__":
         # img = mpimg.imread('image.png')
         # imgplot = plt.imshow(img)
         # plt.show()
-        reddit = praw.Reddit(
-                client_id = "XTLJUNRiv4GzGA",
-                client_secret = "dBTEoLhVX_ob61wJXRyif177Ugli0w",
-                user_agent = "cryptobot",
-                )
+        # reddit = praw.Reddit(
+        #         client_id = "XTLJUNRiv4GzGA",
+        #         client_secret = "dBTEoLhVX_ob61wJXRyif177Ugli0w",
+        #         user_agent = "cryptobot",
+        #         )
         # for submission in reddit.subreddit("CryptoMoonShots").new(limit = 10):
         #     # print(submission)
         #     print(submission.title)
-        con = "0x85eee30c52b0b379b046fb0f85f4f3dc3009afec"
-        ouput = db.cg.get_token_price(id = "ethereum", contract_addresses = con, vs_currencies = "USD", include_market_cap = "true", include_24hr_change = "true")
-        # print(output["market_data"]["total_value_locked"]["usd"])
-        # link = "https://data-api.defipulse.com/api/v1/rekto/api/total-damage?api-key=" + bot_ids.defipulse_api_key
         # response = requests.get(link)
         # output = response.json()
         # print(output)
+        assets = ['btc', 'eth']
+        metric = 'price'
+        start = '2020-06-01'
+        end = '2021-01-01'
+        timeseries_df = get_metric_timeseries(asset_slugs=assets, asset_metric=metric, start=start, end=end)
+        print(timeseries_df)
 
 
     @bot.event

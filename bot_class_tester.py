@@ -1,6 +1,5 @@
 import math
 import bot_ids
-import logging
 from math import log10, floor
 import requests
 import pandas as pd
@@ -39,7 +38,6 @@ class discord_bot:
         api_key= bot_ids.etherscan_api_key,
         cache_expire_after=5,
     )
-    logging.basicConfig(filename='log_test.txt', level=logging.DEBUG)
 
     global the_coin_list
     the_coin_list = copy.deepcopy(cg.get_coins_list())
@@ -52,10 +50,8 @@ class discord_bot:
         if price != None:
             price = round(price,2)
             response = "Bitcoin - $" + str(price)
-            logging.info("Logged BTC price at " + str(datetime.now()))
             return response
         else:
-            logging.warning("Error from CoinGecko at: " + str(datetime.now()))
             return "CoinGecko Error"
 
     def eth_status(self):
@@ -64,10 +60,8 @@ class discord_bot:
         if price != None:
             price = round(price,2)
             response = "Ethereum: $" + str(price)
-            logging.info("Logged ETH price at " + str(datetime.now()))
             return response
         else:
-            logging.warning("Error from CoinGecko at: " + str(datetime.now()))
             return "Coingecko Errors"
 
     def get_coin_price(self, coin_name):
@@ -100,7 +94,6 @@ class discord_bot:
                 embedResponse.add_field(name= coin_name + " Price", value= "["  + "$" + str(price) + "](https://www.coingecko.com/en/coins/" + coin_name_temp + ")", inline=False)
                 embedResponse.add_field(name= coin_name + " Percent Change (24hr)", value= str(percent_change) + "%", inline=False)
                 embedResponse.add_field(name= coin_name + " Market Cap", value= "$" + mc, inline=False)
-                response1 = "```" + coin_name + "'s price: $" + str(price) + "\n" + "Percent Change (24h): " + str(percent_change) + "%" + "\n" + "Market Cap: embedResponse = discord.Embed(color=0xFF8C00)
                 embedResponse.add_field(name= coin_name + " Price", value= "["  + "$" + str(price) + "](https://www.coingecko.com/en/coins/" + coin_name_temp + ")", inline=False)
                 embedResponse.add_field(name= coin_name + " Percent Change (24hr)", value= str(percent_change) + "%", inline=False)
                 embedResponse.add_field(name= coin_name + " Market Cap", value= "$" + mc, inline=False)
@@ -929,7 +922,12 @@ def reformat_large_tick_values(tick_val, pos):
     elif tick_val >= 1000:
         val = round(tick_val/1000, 1)
         new_tick_format = '{:}K'.format(val)
+    elif tick_val > 100:
+        new_tick_format = round(tick_val, 3)
+    elif tick_val > 0.1:
+        new_tick_format = round(tick_val, 1)
     else:
+        new_tick_format = tick_val
         check = False
         check2 = True
         x = 1
@@ -938,8 +936,10 @@ def reformat_large_tick_values(tick_val, pos):
             if tick_val > x:
                 check2 = False
 
+            x /= 10
             exp += 1
-        new_tick_format = round(tick_val, 3)
+        print(new_tick_format)
+        new_tick_format = round(tick_val, exp)
 
     if check == True:
         # make new_tick_format into a string value

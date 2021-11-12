@@ -1,3 +1,12 @@
+# Below is the Main File that controls bot looping
+# and message and command handling
+
+# ....
+
+
+# Imports
+
+
 import bot_ids
 import os
 import bot_class
@@ -8,12 +17,11 @@ import discord
 import datetime
 from discord.ext import tasks, commands
 from discord.ext.tasks import loop
-from discord.ext import commands
 import urllib.request
 import requests
 from urllib.request import Request, urlopen
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
+from guppy import hpy
+import tracemalloc
 
 if __name__ == "__main__":
     # main variables
@@ -34,7 +42,7 @@ if __name__ == "__main__":
 
     intents = discord.Intents.all()
     bot = commands.Bot(command_prefix='!', intents = intents)
-
+    theHeap = hpy()
     db = discord_bot()
     print(db.cg.ping())
     # main functions that need to run
@@ -60,8 +68,8 @@ if __name__ == "__main__":
                 await bot_x.edit(nick = db.btc_status())
                 await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= db.eth_status()))
             # logging.info("Finished Updating Bot")
-            global last_fetch_time
-            last_fetch_time = datetime.datetime.now()
+            # global last_fetch_time
+            # last_fetch_time = datetime.datetime.now()
         except:
             print("Unsuspected error")
             print(datetime.datetime.now())
@@ -85,8 +93,8 @@ if __name__ == "__main__":
                     askar_name = member.name
         bot_count = 0
         print(f"{bot_names[0]} (x" + str(len(bot_names)) + ") has connected to Discord!")
-        global last_fetch_time
-        last_fetch_time = datetime.datetime.now()
+        # global last_fetch_time
+        # last_fetch_time = datetime.datetime.now()
         return
 
     @bot.event
@@ -335,6 +343,10 @@ if __name__ == "__main__":
                 elif str_divide[0] == "servers":
                     result = db.get_servers(bot)
                     await message.channel.send(result)
+                elif str_divide[0] == "heap":
+                    # result = db.get_heap(theHeap)
+                    print(theHeap.heap())
+                    await message.channel.send(theHeap.heap())
                 else:
                     result = db.get_coin_price(command)
                     if result != "":
@@ -346,3 +358,4 @@ if __name__ == "__main__":
     # run background task and bot indefintely
     background_task.start()
     bot.run(bot_token)
+    print(theHeap.heap())
