@@ -913,6 +913,8 @@ def reformat_large_tick_values(tick_val, pos):
     Turns large tick values (in the billions, millions and thousands) such as 4500 into 4.5K and also appropriately turns 4000 into 4K (no zero after the decimal).
     """
     check = True
+    if (tick_val < 0.00000000000001 or tick_val == 0):
+        return tick_val;
     if tick_val >= 1000000000:
         val = round(tick_val/1000000000, 1)
         new_tick_format = '{:}B'.format(val)
@@ -938,7 +940,6 @@ def reformat_large_tick_values(tick_val, pos):
 
             x /= 10
             exp += 1
-        print(new_tick_format)
         new_tick_format = round(tick_val, exp)
 
     if check == True:
