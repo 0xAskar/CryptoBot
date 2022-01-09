@@ -1,7 +1,7 @@
 import bot_ids
 import os
-import bot_class_tester
-from bot_class_tester import discord_bot
+import bot_class_
+from bot_class import discord_bot
 from dotenv import load_dotenv
 import asyncio
 import discord
@@ -166,11 +166,10 @@ if __name__ == "__main__":
             command = info[1:]
             str_divide = command.split()
             # if user asks for help on commands
-            if command == "crypto-help":
-                response = db.help
-                suggester = db.find_member(bot, guild_p, message.author.id)
-                await suggester.send(response)
-                await message.add_reaction('\N{THUMBS UP SIGN}')
+            if command == "crypto-help" or command == "help" or command == "chelp":
+                embedResponse = discord.Embed(title = "CryptoBot Site", url = "http://cryptobot.info", color= 0x4E6F7B)
+                embedResponse.set_footer(text = "Powered by cryptobot.info")
+                await message.channel.send(embed = embedResponse);
             # if user wants to send a suggestion
             elif str_divide[0] == "suggestion":
                 if len(str_divide) > 1:

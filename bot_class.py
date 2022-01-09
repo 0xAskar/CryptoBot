@@ -21,6 +21,7 @@ from time import sleep
 from selenium.webdriver.chrome.options import Options
 from PIL import Image
 import copy
+import seaborn as sbs
 import time
 
 class discord_bot:
@@ -93,10 +94,11 @@ class discord_bot:
                 # market_cap = "{:,}".format(market_cap)
                 coin_name = self.change_cap(coin_name)
                 # embedResponse = discord.Embed(title=coin_name + " Info", color=0xFF8C00)
-                embedResponse = discord.Embed(color=0xFF8C00)
-                embedResponse.add_field(name= coin_name + " Price", value= "["  + "$" + str(price) + "](https://www.coingecko.com/en/coins/" + coin_label + ")", inline=False)
-                embedResponse.add_field(name= coin_name + " Percent Change (24hr)", value= str(percent_change), inline=False)
-                embedResponse.add_field(name= coin_name + " Market Cap", value= mc, inline=False)
+                embedResponse = discord.Embed(title = coin_name + "'s" + " Stats", color = 0xFF8C00)
+                embedResponse.add_field(name= "Price", value= "["  + "$" + str(price) + "](https://www.coingecko.com/en/coins/" + coin_label + ")", inline=False)
+                embedResponse.add_field(name= "Percent Change (24hr)", value= str(percent_change), inline=False)
+                embedResponse.add_field(name= "Market Cap", value= mc, inline=False)
+                embedResponse.set_footer(text = "Powered by cryptobot.info")
                 response1 = "```" + coin_name + "'s price: $" + str(price) + "\n" + "Percent Change (24h): " + str(percent_change) + "%" + "\n" + "Market Cap: $" + str(market_cap) + "```"
                 # response2 = "```" + coin_name + "'s price: $" + str(price) + ", " + "Percent Change (24h): " + str(percent_change) + "%" + "\n" + "Market Cap: $" + str(market_cap) + "```"
                 return embedResponse
@@ -127,7 +129,7 @@ class discord_bot:
             charts = self.cg.get_coin_market_chart_by_id(id = coin_label, vs_currency='usd', days = num_days)
             if type == 2:
                 charts2 = self.cg.get_coin_market_chart_by_id(id = coin_label2, vs_currency = 'usd', days = num_days)
-            plt.clf()
+            plt.close()
             x_vals = []
             y_vals = []
             count = 0
@@ -266,7 +268,7 @@ class discord_bot:
                 # reverse lists
                 x_vals = x_vals[::-1]
                 y_vals = y_vals[::-1]
-            plt.clf()
+            plt.close()
             open, close, high, low = y_vals, y_vals, y_vals, y_vals
             period = len(open)
             frequency = ""
@@ -347,7 +349,7 @@ class discord_bot:
 
         if self.check_coin(coin_name) != "":
             candles = self.cg.get_coin_ohlc_by_id(id = coin_label, vs_currency='usd', days = num_days)
-            plt.clf()
+            plt.close()
             date_arr, year, month, day, hour, open, high, low, close, volume = [], [], [], [], [], [], [], [], [], []
             count = 0
             time_conv = ""
@@ -466,6 +468,7 @@ class discord_bot:
                     embedResponse.add_field(name= "All Time Low", value= "$" + str(atl), inline=True)
                     embedResponse.add_field(name= "Current Price", value= "$" + str(price), inline=True)
                     embedResponse.add_field(name= "All Time High", value= "$" + str(ath), inline=True)
+                    embedResponse.set_footer(text = "Powered by cryptobot.info")
                     return embedResponse
                 else:
                     return "e"
@@ -517,6 +520,7 @@ class discord_bot:
                 num = self.check_large(int(num))
                 embedResponse = discord.Embed(color=0x7A2F8F)
                 embedResponse.add_field(name= first + " to " + second + " Conversion", value= str(num) + " " + first + " = " + str(conversion) + " " + second, inline=False)
+                embedResponse.set_footer(text = "Powered by cryptobot.info")
                 return embedResponse
         else:
             embedResponse = discord.Embed(color=0xF93A2F)
@@ -541,10 +545,11 @@ class discord_bot:
         tsupply = self.check_large(tsupply)
         msupply = self.check_large(msupply)
 
-        embedResponse = discord.Embed(color = 0x00C09A)
-        embedResponse.add_field(name = coin_name + " Circulating Supply", value = csupply, inline=False)
-        embedResponse.add_field(name = coin_name + " Total Supply", value = tsupply, inline=False)
-        embedResponse.add_field(name = coin_name + " Max Supply", value = msupply, inline=False)
+        embedResponse = discord.Embed(title = coin_name + "'s" + " Supply", color = 0x00C09A)
+        embedResponse.add_field(name = "Circulating", value = csupply, inline=False)
+        embedResponse.add_field(name = "Total", value = tsupply, inline=False)
+        embedResponse.add_field(name = "Max", value = msupply, inline=False)
+        embedResponse.set_footer(text = "Powered by cryptobot.info")
         return embedResponse
 
     # find trending coins on coingecko
@@ -558,6 +563,7 @@ class discord_bot:
             count += 1
         embedResponse = discord.Embed(color=0x0099E1)
         embedResponse.add_field(name = "Top Trending Coins on CoinGecko", value = output)
+        embedResponse.set_footer(text = "Powered by cryptobot.info")
         return embedResponse
 
     # find trending coins on coingecko
@@ -578,7 +584,7 @@ class discord_bot:
         # embedResponse.add_field(name = "Rekted Amount (USD)", value = amounts)
         # embedResponse.add_field(name = "The Rekt-ed", value = ids)
         embedResponse = discord.Embed(title="Error with API", color=0x6d37da)
-        embedResponse.add_field(name = "Depreciated", value = "Defipulse depreciated the Rekt API endpoints")
+        embedResponse.add_field(name = "Depreciated", value = "Defipulse deprecated the Rekt API endpoints")
         return embedResponse
 
 
@@ -593,6 +599,7 @@ class discord_bot:
         coin_name = self.change_cap(coin_name)
         embedResponse = discord.Embed(color = 0xF8C300)
         embedResponse.add_field(name = coin_name + " Mcap to TVL Ratio", value = str(ratio), inline=False)
+        embedResponse.set_footer(text = "Powered by cryptobot.info")
         return embedResponse
 
     def get_tvl(self, coin):
@@ -610,6 +617,7 @@ class discord_bot:
         coin_name = self.change_cap(coin_name)
         embedResponse = discord.Embed(color = 0xF8C300)
         embedResponse.add_field(name = coin_name + " TVL", value = str(tvl), inline=False)
+        embedResponse.set_footer(text = "Powered by cryptobot.info")
         return embedResponse
 
     def get_gmr(self):

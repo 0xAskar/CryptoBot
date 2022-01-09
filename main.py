@@ -47,7 +47,7 @@ if __name__ == "__main__":
     print(db.cg.ping())
     # main functions that need to run
 
-    @loop(seconds=20.0)
+    @loop(seconds=60.0)
     async def background_task():
         try:
             await bot.wait_until_ready()
@@ -116,11 +116,9 @@ if __name__ == "__main__":
                 return
             # if user asks for help on commands
             if command == "crypto-help" or command == "help" or command == "chelp":
-                response = db.help()
-                # suggester = db.find_member(bot, guild_p, message.author.id)
-                # await suggester.send(response)
-                # await message.add_reaction('\N{THUMBS UP SIGN}')
-                await message.channel.send(response);
+                embedResponse = discord.Embed(title = "CryptoBot Site", url = "http://cryptobot.info", color= 0x4E6F7B)
+                embedResponse.set_footer(text = "Powered by cryptobot.info")
+                await message.channel.send(embed = embedResponse);
             # if user wants to send a suggestion
             elif str_divide[0] == "suggestion" or str_divide[0] == "suggestions":
                 if len(str_divide) > 1:
