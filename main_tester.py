@@ -1,6 +1,6 @@
 import bot_ids
 import os
-import bot_class_
+import bot_class
 from bot_class import discord_bot
 from dotenv import load_dotenv
 import asyncio
@@ -23,6 +23,7 @@ import messari
 from messari import assets
 import messari.timeseries
 from messari.timeseries import get_metric_timeseries
+
 
 if __name__ == "__main__":
     # main variables

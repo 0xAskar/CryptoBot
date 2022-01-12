@@ -10,7 +10,9 @@ from discord.ext.tasks import loop
 from discord.ext import commands
 import numpy as np
 import datetime as dt
+import matplotlib
 import matplotlib.pyplot as plt
+from matplotlib.pyplot import figure
 import matplotlib.ticker as tick
 import matplotlib.dates as mdates
 import mplfinance as mpf
@@ -20,22 +22,27 @@ from selenium import webdriver
 from time import sleep
 from selenium.webdriver.chrome.options import Options
 from PIL import Image
+import praw
 import copy
-import seaborn as sbs
+import urllib.parse
+import urllib.request
+from urllib.request import Request, urlopen
 import time
+import json
+import re
+
 
 class discord_bot:
     # api instance
     cg = CoinGeckoAPI()
     es = etherscan.Client(
-        api_key=bot_ids.etherscan_api_key,
+        api_key= bot_ids.etherscan_api_key,
         cache_expire_after=5,
     )
 
-    # logging.basicConfig(filename="log.log", level=logging.INFO)
-
     global the_coin_list
     the_coin_list = copy.deepcopy(cg.get_coins_list())
+
 
     # functions to gather btc, eth, and any coins price
     def btc_status(self):
@@ -43,12 +50,9 @@ class discord_bot:
         price = price_data['bitcoin']['usd']
         if price != None:
             price = round(price,2)
-            price = "{:,}".format(price)
             response = "Bitcoin - $" + str(price)
-            # logging.info("Logged BTC price at " + str(datetime.now()))
             return response
         else:
-            # logging.warning("Error from CoinGecko at: " + str(datetime.now()))
             return "CoinGecko Error"
 
     def eth_status(self):
@@ -56,12 +60,9 @@ class discord_bot:
         price = price_data['ethereum']['usd']
         if price != None:
             price = round(price,2)
-            price = "{:,}".format(price)
             response = "Ethereum: $" + str(price)
-            # logging.info("Logged ETH price at " + str(datetime.now()))
             return response
         else:
-            # logging.warning("Error from CoinGecko at: " + str(datetime.now()))
             return "Coingecko Errors"
 
     def get_coin_price(self, coin_name):
@@ -78,36 +79,34 @@ class discord_bot:
                     price = round(price, 4)
                 else:
                     price = round(price,3)
+                # format price for commas
                 price = "{:,}".format(price)
                 percent_change = price_data[coin_label]['usd_24h_change']
-                if percent_change != None:
-                    percent_change = str(round(percent_change, 2)) + "%"
-                else:
-                    percent_change = None
+                percent_change = round(percent_change, 2)
                 market_cap = price_data[coin_label]['usd_market_cap']
                 market_cap = round(market_cap, 2)
                 market_cap = self.check_large(market_cap)
-                if market_cap != "Not Found":
-                    mc = "$" + market_cap
-                else:
-                    mc = market_cap
+                mc = market_cap
                 # market_cap = "{:,}".format(market_cap)
+                coin_name_temp = coin_label
                 coin_name = self.change_cap(coin_name)
                 # embedResponse = discord.Embed(title=coin_name + " Info", color=0xFF8C00)
-                embedResponse = discord.Embed(title = coin_name + "'s" + " Stats", color = 0xFF8C00)
-                embedResponse.add_field(name= "Price", value= "["  + "$" + str(price) + "](https://www.coingecko.com/en/coins/" + coin_label + ")", inline=False)
-                embedResponse.add_field(name= "Percent Change (24hr)", value= str(percent_change), inline=False)
-                embedResponse.add_field(name= "Market Cap", value= mc, inline=False)
+                embedResponse = discord.Embed(color=0xFF8C00)
+                embedResponse.add_field(name= coin_name + " Price", value= "["  + "$" + str(price) + "](https://www.coingecko.com/en/coins/" + coin_name_temp + ")", inline=False)
+                embedResponse.add_field(name= coin_name + " Percent Change (24hr)", value= str(percent_change) + "%", inline=False)
+                embedResponse.add_field(name= coin_name + " Market Cap", value= "$" + mc, inline=False)
+                embedResponse.add_field(name= coin_name + " Price", value= "["  + "$" + str(price) + "](https://www.coingecko.com/en/coins/" + coin_name_temp + ")", inline=False)
+                embedResponse.add_field(name= coin_name + " Percent Change (24hr)", value= str(percent_change) + "%", inline=False)
+                embedResponse.add_field(name= coin_name + " Market Cap", value= "$" + mc, inline=False)
                 embedResponse.set_footer(text = "Powered by cryptobot.info")
                 response1 = "```" + coin_name + "'s price: $" + str(price) + "\n" + "Percent Change (24h): " + str(percent_change) + "%" + "\n" + "Market Cap: $" + str(market_cap) + "```"
+                # response2 = "```" + coin_name + "'s price: $" + str(price) + ", " + "Percent Change (24h): " + str(percent_change) + "%" + "\n" + "Market Cap: $" + str(market_cap) + "```"$" + str(market_cap) + "```"
                 # response2 = "```" + coin_name + "'s price: $" + str(price) + ", " + "Percent Change (24h): " + str(percent_change) + "%" + "\n" + "Market Cap: $" + str(market_cap) + "```"
                 return embedResponse
         return ""
 
     # retreive data and create candle chart of any coin
     def get_line_chart(self, coin_name, coin_name2, num_days, type):
-        #all code that includes type 2 is for chart one currency against another
-
         #coin label work
         coin_label = ""
         coin_name = coin_name.lower()
@@ -120,16 +119,20 @@ class discord_bot:
 
         #checking if num days is valid
         temp = str(num_days)
+        date_types = ["d", "m", "y"]
         if not temp.isdigit():
             temp = temp.lower()
-            if temp != "max":
+            if len(temp) == 2 and temp[0].isdigit() and any(date_type in temp[1] for date_type in date_types):
+                if temp[1] == "y":
+                    num_days = str(int(temp[0]) * 365)
+            elif temp != "max":
                 return False
 
         if self.check_coin(coin_name) != "":
             charts = self.cg.get_coin_market_chart_by_id(id = coin_label, vs_currency='usd', days = num_days)
             if type == 2:
                 charts2 = self.cg.get_coin_market_chart_by_id(id = coin_label2, vs_currency = 'usd', days = num_days)
-            plt.close()
+            plt.clf()
             x_vals = []
             y_vals = []
             count = 0
@@ -152,6 +155,9 @@ class discord_bot:
                 count += 1
                 if count == min:
                     break
+            # print(y_vals)
+            # print("")
+            # print("")
             if type == 2:
                 count = 0
                 for point in charts2['prices']:
@@ -203,11 +209,12 @@ class discord_bot:
                 coin_label2 = self.change_cap(coin_name2.lower())
                 title1 = "\n" + "\n" + coin_label + "/" + coin_label2 + " " + changed + percent_change + "% - " + days
             mc = mpf.make_marketcolors(
-                                up='tab:blue',down='tab:red',
-                                wick={'up':'blue','down':'red'},
+                                up='tab:green',down='tab:red',
+                                wick={'up':'green','down':'red'},
                                 volume='tab:green',
                                )
-            edited_style  = mpf.make_mpf_style(gridstyle = '-', facecolor = "lightgray", gridcolor = "white", edgecolor = "black", base_mpl_style = "classic", marketcolors=mc)
+
+            edited_style  = mpf.make_mpf_style(gridstyle = '-', facecolor = "lightgray", gridcolor = "white", edgecolor = "lightgray", base_mpl_style = "classic")
             if type == 1:
                 fig, axlist = mpf.plot(ohlc, type='line', title = title1, figratio = (30,20), ylabel = 'Price - USD', style = edited_style, returnfig = True)
                 ax1 = axlist[0]
@@ -267,7 +274,7 @@ class discord_bot:
                 # reverse lists
                 x_vals = x_vals[::-1]
                 y_vals = y_vals[::-1]
-            plt.close()
+            plt.clf()
             open, close, high, low = y_vals, y_vals, y_vals, y_vals
             period = len(open)
             frequency = ""
@@ -313,10 +320,9 @@ class discord_bot:
                                 wick={'up':'blue','down':'red'},
                                 volume='tab:green',
                                )
-            edited_style  = mpf.make_mpf_style(gridstyle = '-', gridcolor = "white", edgecolor = "black", base_mpl_style = "nightclouds", marketcolors=mc)
-            # edited_style  = mpf.make_mpf_style(gridstyle = '-', facecolor = "black", gridcolor = "white", edgecolor = "black", base_mpl_style = "classic", marketcolors=mc)
+            edited_style  = mpf.make_mpf_style(gridstyle = '-', facecolor = "lightgray", gridcolor = "white", edgecolor = "black", base_mpl_style = "classic", marketcolors=mc)
             if type == 1:
-                fig, axlist = mpf.plot(ohlc, type='line', title = title1, figratio = (16,10), ylabel = 'Price - USD ($)', style = "nightclouds", returnfig = True)
+                fig, axlist = mpf.plot(ohlc, type='line', title = title1, figratio = (16,10), ylabel = 'Price - USD ($)', style = edited_style, returnfig = True)
                 ax1 = axlist[0]
                 # ax1.yaxis.set_major_formatter(tick.FormatStrFormatter('%.8f'))
                 ax1.yaxis.set_major_formatter(tick.FuncFormatter(reformat_large_tick_values))
@@ -336,6 +342,7 @@ class discord_bot:
 
         #coin label work
         coin_label = ""
+        coin_name = coin_name.lower()
         coin_label = self.check_coin(coin_name)
         #checking if num days is valid
         valid_days = ["1","7","14","30","90","180","365", "MAX", "max"]
@@ -349,8 +356,9 @@ class discord_bot:
 
         if self.check_coin(coin_name) != "":
             candles = self.cg.get_coin_ohlc_by_id(id = coin_label, vs_currency='usd', days = num_days)
-            plt.close()
+            plt.clf()
             date_arr, year, month, day, hour, open, high, low, close, volume = [], [], [], [], [], [], [], [], [], []
+            dohlcv = [[]]
             count = 0
             time_conv = ""
             for point in candles:
@@ -418,7 +426,44 @@ class discord_bot:
         else:
             return "error"
 
-    # function to get the ath, atl, and/or the range of the coin
+    # add volume charts TODO
+    def get_volume_chart(self, num_days):
+        # list of exchanges
+        exchange_ids = ["binance", "gdax", "uniswap"]
+        exchange_names = ["Binance", "Coinbase Pro", "Uniswap"]
+        volumes = []
+        # get exchange data and input into volume list
+        for ex in exchange_ids:
+            volumes.append(self.cg.get_exchanges_volume_chart_by_id(id = ex, days = num_days))
+        plt.clf()
+        x_vals = []
+        y_vals = []
+        count = 0
+        binance, gdax, uniswap = [], [], []
+        output_volumes = [binance, gdax, uniswap]
+        # find minimum for number of datapoints
+        min = len(volumes[0])
+        for vol in volumes:
+            if len(vol) < min:
+                min = len(vol)
+        # now enter the datapoints into column
+        for vol, output in zip(volumes, output_volumes):
+            for point in vol:
+                if count == 0:
+                    time_conv = datetime.utcfromtimestamp(point[0] / 1000).strftime('%Y-%m-%d')
+                    time1 = datetime.utcfromtimestamp(point[0] / 1000).strftime('%Y-%m-%d %H:%M:%S')
+                if count == 1:
+                    time2 = datetime.utcfromtimestamp(point[0] / 1000).strftime('%Y-%m-%d %H:%M:%S')
+                if count == min-1:
+                    time_end = datetime.utcfromtimestamp(point[0] / 1000).strftime('%Y-%m-%d')
+                x_vals.append(time_conv)
+                output.append(point[1])
+                count += 1
+                if count == min:
+                    break
+        print(output_volumes)
+        return
+
     def get_all_time(self, symbol, coin_name):
         coin = ""
         coin = self.check_coin(coin_name)
@@ -439,6 +484,7 @@ class discord_bot:
                 return embedResponse
             else:
                 return "e"
+
         elif symbol == "L":
             if atl != None and atl != "":
                 atl = "{:,}".format(atl)
@@ -468,12 +514,37 @@ class discord_bot:
                     embedResponse.add_field(name= "All Time Low", value= "$" + str(atl), inline=True)
                     embedResponse.add_field(name= "Current Price", value= "$" + str(price), inline=True)
                     embedResponse.add_field(name= "All Time High", value= "$" + str(ath), inline=True)
-                    embedResponse.set_footer(text = "Powered by cryptobot.info")
                     return embedResponse
                 else:
                     return "e"
             else:
                 return "e"
+
+    # find trending coins on coingecko
+    def get_rekt(self):
+        count = 0
+        # link = "https://data-api.defipulse.com/api/v1/rekto/api/top10?a pi-key=" + bot_ids.defipulse_api_key
+        # link = "https://api.rek.to/api/top10?api-key=" + bot_ids.defipulse_api_key
+        # link = "https://api.rek.to/api/top10?"
+        # response = requests.get(link)
+        # # output = response.json()
+        # # js = json.loads(data.decode("utf-8"))
+        # # print(js)
+        # # print(output);
+        # ids, amounts = "", ""
+        # for idiot in output["top10"]:
+        #     if count < 5:
+        #         ids += str(idiot["id"]) + "\n"
+        #         amounts += "$" + str(self.check_large(idiot["value_usd"])) + "\n"
+        #         # amounts += str(self.check_large(int(idiot["value_usd"]))) +  "\n"
+        #         count += 1
+        # embedResponse = discord.Embed(title="Top 5 Rekts (Past 24hrs)", color=0x6d37da)
+        # embedResponse.add_field(name = "Rekted Amount (USD)", value = amounts)
+        # embedResponse.add_field(name = "The Rekt-ed", value = ids)
+        embedResponse = discord.Embed(title="Error with API", color=0x6d37da)
+        embedResponse.add_field(name = "Depreciated", value = "Defipulse depreciated the Rekt API endpoints")
+        return embedResponse
+
 
     # get an image of a coin
     def get_image(self, coin_name):
@@ -510,10 +581,12 @@ class discord_bot:
             second_data = self.cg.get_price(ids= second_coin, vs_currencies='usd')
             second_price = second_data[second_coin]['usd']
             if second_data != None:
+                print("in second")
                 # convert to proper cap.
                 first = self.change_cap(first)
                 second = self.change_cap(second)
                 conv_num = float(num) * (first_price / second_price)
+                print(conv_num)
                 conversion = self.round_num(conv_num)
                 conversion = self.check_large(conversion)
                 num = self.check_large(int(num))
@@ -540,16 +613,19 @@ class discord_bot:
         msupply = data["market_data"]["max_supply"]
 
         coin_name = self.change_cap(coin_name)
-        csupply = self.check_large(csupply)
         tsupply = self.check_large(tsupply)
+        csupply = self.check_large(csupply)
         msupply = self.check_large(msupply)
 
-        embedResponse = discord.Embed(title = coin_name + "'s" + " Supply", color = 0x00C09A)
-        embedResponse.add_field(name = "Circulating", value = csupply, inline=False)
-        embedResponse.add_field(name = "Total", value = tsupply, inline=False)
-        embedResponse.add_field(name = "Max", value = msupply, inline=False)
-        embedResponse.set_footer(text = "Powered by cryptobot.info")
+        embedResponse = discord.Embed(color = 0x969C9F)
+        embedResponse.add_field(name = coin_name + " Circulating Supply", value = csupply, inline=False)
+        embedResponse.add_field(name = coin_name + " Total Supply", value = tsupply, inline=False)
+        embedResponse.add_field(name = coin_name + " Max Supply", value = msupply, inline=False)
         return embedResponse
+
+    # def get_list(self, coin_array):
+    #     for coin in coin_array:
+    #         self.coin_name(coin)
 
     # find trending coins on coingecko
     def get_trending(self):
@@ -560,32 +636,9 @@ class discord_bot:
         for x in trendy["coins"]:
             output += str(numbering[count]) + ") " + x['item']['name'] + "\n"
             count += 1
-        embedResponse = discord.Embed(color=0x0099E1)
+        embedResponse = discord.Embed(color=0xF8C300)
         embedResponse.add_field(name = "Top Trending Coins on CoinGecko", value = output)
-        embedResponse.set_footer(text = "Powered by cryptobot.info")
         return embedResponse
-
-    # find trending coins on coingecko
-    def get_rekt(self):
-        count = 0
-        # link = "https://data-api.defipulse.com/api/v1/rekto/api/top10?api-key=" + bot_ids.defipulse_api_key
-        # link = "https://api.rek.to/api/top10?api-key=" + bot_ids.defipulse_api_key
-        # response = requests.get(link)
-        # output = response.json()
-        # ids, amounts = "", ""
-        # for idiot in output["top10"]:
-        #     if count < 5:
-        #         ids += str(idiot["id"]) + "\n"
-        #         amounts += "$" + str(self.check_large(idiot["value_usd"])) + "\n"
-        #         # amounts += str(self.check_large(int(idiot["value_usd"]))) +  "\n"
-        #         count += 1
-        # embedResponse = discord.Embed(title="Top 5 Rekts (Past 24hrs)", color=0x6d37da)
-        # embedResponse.add_field(name = "Rekted Amount (USD)", value = amounts)
-        # embedResponse.add_field(name = "The Rekt-ed", value = ids)
-        embedResponse = discord.Embed(title="Error with API", color=0x6d37da)
-        embedResponse.add_field(name = "Depreciated", value = "Defipulse deprecated the Rekt API endpoints")
-        return embedResponse
-
 
     def get_mcap_to_tvl_ratio(self, coin):
         coin_name = ""
@@ -598,7 +651,6 @@ class discord_bot:
         coin_name = self.change_cap(coin_name)
         embedResponse = discord.Embed(color = 0xF8C300)
         embedResponse.add_field(name = coin_name + " Mcap to TVL Ratio", value = str(ratio), inline=False)
-        embedResponse.set_footer(text = "Powered by cryptobot.info")
         return embedResponse
 
     def get_tvl(self, coin):
@@ -616,42 +668,36 @@ class discord_bot:
         coin_name = self.change_cap(coin_name)
         embedResponse = discord.Embed(color = 0xF8C300)
         embedResponse.add_field(name = coin_name + " TVL", value = str(tvl), inline=False)
-        embedResponse.set_footer(text = "Powered by cryptobot.info")
         return embedResponse
 
+
+    # Golden Ratio Multiple Chart
     def get_gmr(self):
         options = webdriver.ChromeOptions()
         options.headless = True
-        options.add_argument('--headless')
-        options.add_argument('--disable-gpu')
-        options.add_argument("window-size=1024,768")
-        options.add_argument("--no-sandbox")
-        driver = webdriver.Chrome(executable_path = "/root/cryptobot/chromedriver", options = options)
+        driver = webdriver.Chrome(executable_path = "/Users/askar/Documents/Bots/CryptoBot/chromedriver", options = options)
         driver.get("https://www.lookintobitcoin.com/charts/golden-ratio-multiplier/")
         driver.execute_script("window.scrollTo(0, 260)")
         sleep(5)
         screenshot = driver.save_screenshot("grm.png")
         img = Image.open("grm.png")
         width, height = img.size
-        img = img.crop((50, 0, width-10, height-200))
+        img = img.crop((50, 0, width-10, height-10))
         img = img.save("grm.png", format = "png")
         driver.quit()
 
+    # MVRV Z-Score Chart
     def get_mvrv(self):
         options = webdriver.ChromeOptions()
         options.headless = True
-        options.add_argument('--headless')
-        options.add_argument('--disable-gpu')
-        options.add_argument("window-size=1024,768")
-        options.add_argument("--no-sandbox")
-        driver = webdriver.Chrome(executable_path = "/root/cryptobot/chromedriver", options = options)
+        driver = webdriver.Chrome(executable_path = "/Users/askar/Documents/Bots/CryptoBot/chromedriver", options = options)
         driver.get("https://www.lookintobitcoin.com/charts/mvrv-zscore/")
         driver.execute_script("window.scrollTo(0, 290)")
         sleep(5)
         screenshot = driver.save_screenshot("mvrv.png")
         img = Image.open("mvrv.png")
         width, height = img.size
-        img = img.crop((0, 0, width-10, height-205))
+        img = img.crop((0, 0, width-10, height-20))
         img = img.save("mvrv.png", format = "png")
         driver.quit()
 
@@ -659,18 +705,14 @@ class discord_bot:
     def get_puell(self):
         options = webdriver.ChromeOptions()
         options.headless = True
-        options.add_argument('--headless')
-        options.add_argument('--disable-gpu')
-        options.add_argument("window-size=1024,768")
-        options.add_argument("--no-sandbox")
-        driver = webdriver.Chrome(executable_path = "/root/cryptobot/chromedriver", options = options)
+        driver = webdriver.Chrome(executable_path = "/Users/askar/Documents/Bots/CryptoBot/chromedriver", options = options)
         driver.get("https://www.lookintobitcoin.com/charts/puell-multiple/")
         driver.execute_script("window.scrollTo(0, 300)")
         sleep(5)
         screenshot = driver.save_screenshot("puell.png")
         img = Image.open("puell.png")
         width, height = img.size
-        img = img.crop((10, 0, width-10, height-220))
+        img = img.crop((10, 0, width-10, height-30))
         img = img.save("puell.png", format = "png")
         driver.quit()
 
@@ -678,35 +720,27 @@ class discord_bot:
     def get_pi(self):
         options = webdriver.ChromeOptions()
         options.headless = True
-        options.add_argument('--headless')
-        options.add_argument('--disable-gpu')
-        options.add_argument("window-size=1024,768")
-        options.add_argument("--no-sandbox")
-        driver = webdriver.Chrome(executable_path = "/root/cryptobot/chromedriver", options = options)
+        driver = webdriver.Chrome(executable_path = "/Users/askar/Documents/Bots/CryptoBot/chromedriver", options = options)
         driver.get("https://www.lookintobitcoin.com/charts/pi-cycle-top-indicator/")
         driver.execute_script("window.scrollTo(0, 270)")
         sleep(5)
         screenshot = driver.save_screenshot("picycle.png")
         img = Image.open("picycle.png")
         width, height = img.size
-        img = img.crop((10, 0, width-10, height-205))
+        img = img.crop((10, 0, width-10, height-30))
         img = img.save("picycle.png", format = "png")
         driver.quit()
 
     def get_ds(self):
         options = webdriver.ChromeOptions()
         options.headless = True
-        options.add_argument('--headless')
-        options.add_argument('--disable-gpu')
-        options.add_argument("window-size=1024,768")
-        options.add_argument("--no-sandbox")
-        driver = webdriver.Chrome(executable_path = "/root/cryptobot/chromedriver", options = options)
-        driver.get("https://www.defisocks.com/#/")
+        driver = webdriver.Chrome(executable_path = "/Users/askar/Documents/Bots/CryptoBot/chromedriver", options = options)
+        driver.get("https://defisocks.com/#/")
         last_height = driver.execute_script("return document.body.scrollHeight")
         for i in range(0,2):
             # Scroll down to bottom
             if i == 1:
-                driver.execute_script("window.scrollTo(0, 3350);")
+                driver.execute_script("window.scrollTo(0, 3800);")
             # Wait to load page
             sleep(4)
             # Calculate new scroll height and compare with last scroll height
@@ -717,14 +751,15 @@ class discord_bot:
         screenshot = driver.save_screenshot("ds.png")
         img = Image.open("ds.png")
         width, height = img.size
-        img = img.crop((320, 125, width-340, height-100))
+        img = img.crop((280, 125, width-280, height-60))
         img = img.save("ds.png", format = "png")
         driver.quit()
+
 
     def get_defisocks(self):
         results = self.es.get_token_transactions(contract_address = "0x9d942bd31169ed25a1ca78c776dab92de104e50e")
         return results
-    # functions to check coins, names, and size
+    # functions to check coins, names, and size: helper functions
 
     # round numbers correctly, sig figs for <1, rounding for >1
     def round_num(self, num):
@@ -734,6 +769,7 @@ class discord_bot:
             while temp < 1:
                 temp *= 10
                 count += 1
+            print(count)
             return round(num, count)
         else:
             return round(num, 2)
@@ -743,10 +779,6 @@ class discord_bot:
         coin_name = coin_name.lower()
         if coin_name == "uni":
             coin_name = "uniswap"
-        elif coin_name == "rbc":
-            coin_name = "rubic"
-        elif coin_name == "comp" or coin_name == "compound":
-            coin_name = "compound-governance-token"
         elif coin_name == "graph" or coin_name == "thegraph":
             coin_name = "the-graph"
         for coin in the_coin_list:
@@ -773,17 +805,16 @@ class discord_bot:
         return coin_label
 
     def check_large(self, num): #there are better ways but atm, its not important
-        num = float(num)
-        # check to see if num exists or less than 999, if so no need to compress
         if num == None:
             return "None"
+        print("check_large" + str(num))
         if num < 999:
             print("in here")
             return num
+        letter = ""
+        num = float(num)
         if num == 0:
             return "Not Found"
-        #start compressing
-        letter = ""
         if num >= 1000000:
             letter = " M"
             num /= 1000000
@@ -852,8 +883,21 @@ class discord_bot:
         return embedResponse
 
     def future(self):
-        response = "BAND is a shitcoin [I'm not changing this Shi]"
+        response = "BAND is a shitcoin"
         return response
+
+    def valid_num_days(self, num_days):
+        temp = str(num_days)
+        date_types = ["d", "w", "m", "y"]
+        date_intereval = ["1", "7", "30", "365"]
+        if not temp.isdigit():
+            temp = temp.lower()
+            if len(temp) == 2 and temp[0].isdigit() and any(date_type in temp[1] for date_type in date_types):
+                if temp[1] == "y":
+                    num_days = str(int(temp[0]) * 365)
+            elif temp != "max":
+                return False
+        return True
 
     def error(self):
         embedResponse = discord.Embed(color=0xF93A2F)
@@ -870,51 +914,6 @@ class discord_bot:
         for member in guild.members:
             if member.id == mem_id:
                 return member
-
-    def get_servers(self, bot):
-        all = ""
-        counter = 1
-        for guild in bot.guilds:
-            mem_count = guild.member_count
-            all += "Server " + str(counter) + ": " + str(guild.name) + " (Size: " + str(mem_count) + ")" + "\n"
-            counter += 1
-        return all
-
-
-    def help(self):
-        help_info =  "```CryptoBot gives you sends live updates of " + \
-        "any cryptocurrency!" + "\n" + "\n" + \
-        "Commands:" + "\n" + "\n" + \
-        "   Price Command: ![coin symbol/name], '!btc' or '!bitcoin' - retreive price information about a coin" + "\n" + "\n" + \
-        "   Chart Command: '!chart btc 5' <chart> <coin> <num days> - retreive the line chart of a coin, only support USD as of now (ex: !chart link 30)" + "\n" + "\n" + \
-        "   Chart Command: '!chart btc 5' <chart> <coin1> <coin2> <num days> - retreive the line chart of two coins coupled (ex: !chart link btc 30)" + "\n" + "\n" + \
-        "   Candle Command: '!candle btc 5' <chart> <coin_name/symbol> <num days>, "\
-        "days has to be one of these:" + "\n" + "   '1','7','14','30','90','180','365','MAX' - retreive the candle chart of a coin" + "\n" + "\n" + \
-        "   Suggestion Command: !suggestion or !suggestions do this' <suggestion> <message> - send a suggestion for the bot" + "\n" + "\n" + \
-        "   Gas Command: '!gas' - get information about gwei prices" + "\n" + "\n" + \
-        "   Convert Command: '!convert <num> <coin1> <coin2>' - get conversion rate of num of coin1 in number of coin2 (ex: !convert 1000 usdc btc)" + "\n" + "\n" + \
-        "   Global Defi Stats Command: '!global-defi' - get global information about defi" + "\n" + "\n" + \
-        "   Top Trending Coins Command: '!trendy - get the top trending coins on CoinGecko" + "\n" + "\n" + \
-        "   Supply Command: '!supply <coin> - get the circulating and maximum supply of a coin" + "\n" + "\n" + \
-        "   Golden Ratio Multiple Indicator (BTC) (Unavailable): '!grm-chart" + "\n" + "\n" + \
-        "   Puell Multiple Indicator (BTC) (Unavailable): '!puell-chart" + "\n" + "\n" + \
-        "   MVRV Z-Score Indicator (BTC) (Unavailable): '!mvrv-chart" + "\n" + "\n" + \
-        "   PI Cycle Top Indicator (BTC) (Unavailable): '!pi-chart" + "\n" + "\n" + \
-        "   ATH, ATL, Range Commands: '!ath [coin], !atl [coin], !range [coin]" + "\n" + "\n" + \
-        "   Image Command: '!image [coin]" + "\n" + "\n" + \
-        "   TVL Command: '!tvl [coin]" + "\n" + "\n" + \
-        "   Mcap to TVL Ratio Command: '!tvl-ratio [coin]" + "\n" + "\n" + \
-        "   Defisocks (Unavailable): '!defisocks" + "\n" + "\n" + \
-        "   ATH, ATL, Range: '!ath [coin], !atl [coin], !range [coin]" + "\n" + "\n" + \
-        "Credits to CoinGecko® and Etherscan® for their free APIs!```"
-
-        return help_info;
-
-
-
-
-#############  end of discord_bot class ###############
-
 
 def reformat_large_tick_values(tick_val, pos):
     """
@@ -964,3 +963,152 @@ def reformat_large_tick_values(tick_val, pos):
                 new_tick_format = new_tick_format[0:index_of_decimal] + new_tick_format[index_of_decimal+2:]
 
     return new_tick_format
+
+def check_decimal():
+    return ""
+
+    # # retreive data and create line chart of any coin
+    # def get_coin_chart(self, coin_name, num_days):
+    #     coin_label = ""
+    #     coin_name = coin_name.lower()
+    #     coin_label = self.check_coin(coin_name)
+    #
+    #     temp = str(num_days)
+    #     if not temp.isdigit():
+    #         temp = temp.lower()
+    #         if temp != "max":
+    #             return False
+    #
+    #     if self.check_coin(coin_name) != "":
+    #         charts = self.cg.get_coin_market_chart_by_id(id = coin_label, vs_currency='usd', days = num_days)
+    #         plt.clf()
+    #         x_vals = []
+    #         y_vals = []
+    #         for point in charts['prices']:
+    #             time_conv = datetime.utcfromtimestamp(point[0] / 1000).strftime('%Y-%m-%d %H:%M:%S')
+    #             x_vals.append(time_conv)
+    #             y_vals.append(point[1])
+    #         ax = plt.axes()
+    #         plt.plot(x_vals, y_vals)
+    #         # pyplot.locator_params(nbins=4)
+    #         ax.xaxis.set_major_locator(plt.MaxNLocator(3))
+    #         # ax.set_xticklabels([label.replace(" ", "\n") for label in x_vals])
+    #         #create strings for title
+    #         percent_change = ((y_vals[len(y_vals) - 1] - y_vals[0]) / y_vals[0]) * 100
+    #         percent_change = round(percent_change, 2)
+    #         changed, days = "", ""
+    #         if num_days == "1":
+    #             days = "the past 24 hours"
+    #         elif num_days == "MAX" or num_days == "max":
+    #             days = "Within Lifetime"
+    #         else:
+    #             days = "Past " + num_days + " Days"
+    #         # change title based on percent
+    #         if percent_change > 0:
+    #             changed = "+"
+    #         else:
+    #             changed = ""
+    #         percent_change = "{:,}".format(percent_change) # had to do it here because this converts it to a string, need it as a int above
+    #         coin_label = self.change_cap(coin_label)
+    #         title1 = coin_label + " " + changed + percent_change + "% - " + days
+    #         plt.title(title1)
+    #         plt.ylabel('Price - USD')
+    #         plt.grid(mfc = "gray")
+    #         plt.savefig('chart.png', edgecolor = 'black')
+    #         return True
+    #     else:
+    #         return False
+
+    # # chart of two coins for instance link/btc
+    # def get_line_chart_two(self, coin_name, coin_name2, num_days):
+    #     #coin label work
+    #     coin_label = ""
+    #     coin_label2 = ""
+    #     coin_name = coin_name.lower()
+    #     coin_label2 = coin_name2.lower()
+    #     coin_label = self.check_coin(coin_name)
+    #     coin_label2 = self.check_coin(coin_name2)
+    #     #checking if num days is valid
+    #     temp = str(num_days)
+    #     if not temp.isdigit():
+    #         temp = temp.lower()
+    #         if temp != "max":
+    #             return False
+    #
+    #     if self.check_coin(coin_name) != "":
+    #         charts = self.cg.get_coin_market_chart_by_id(id = coin_label, vs_currency='usd', days = num_days)
+    #         charts2 = self.cg.get_coin_market_chart_by_id(id = coin_label2, vs_currency = 'usd', days = num_days)
+    #         plt.clf()
+    #         x_vals = []
+    #         y_vals = []
+    #         count = 0
+    #         open, close, high, low, volume = [], [], [], [], []
+    #         min = len(charts["prices"])
+    #         if min > len(charts2["prices"]):
+    #             min = len(charts2["prices"])
+    #         for point in charts['prices']:
+    #             if count == min:
+    #                 break
+    #             if count == 0:
+    #                 time_conv = datetime.utcfromtimestamp(point[0] / 1000).strftime('%Y-%m-%d')
+    #             x_vals.append(time_conv)
+    #             y_vals.append(point[1])
+    #             volume.append(1)
+    #             count += 1
+    #         count = 0
+    #         for point in charts2['prices']:
+    #             if count == min:
+    #                 break
+    #             y_vals[count] = y_vals[count] / point[1]
+    #             count += 1
+    #         # create the date and dataframe
+    #         open = y_vals
+    #         close = y_vals
+    #         high = y_vals
+    #         low = y_vals
+    #         period = len(open)
+    #         frequency = ""
+    #         if num_days == "1":
+    #             frequency = "5min"
+    #         elif num_days != "max" and (int(num_days) <= 90 and int(num_days) > 1):
+    #             frequency = "1H"
+    #         else:
+    #             frequency = "4D"
+    #         dti = pd.date_range(time_conv, periods=period, freq=frequency)
+    #         ohlc = {"opens":open, "highs":high, "lows":low, "closes":close, "volumes":volume}
+    #         ohlc = pd.DataFrame(data = ohlc, index = dti)
+    #         ohlc.columns = ['Open', 'High', 'Low', 'Close', 'Volume'] #these two lines solved the dataframe problem
+    #         ohlc.index.name = "Date"
+    #         # plot and make it look good
+    #         percent_change = ((close[len(close) - 1] - close[0]) / close[0]) * 100
+    #         percent_change = round(percent_change, 2)
+    #         changed, days = "", ""
+    #         # change title based on days
+    #         if num_days == "1":
+    #             days = "the past 24 hours"
+    #         elif num_days == "MAX" or num_days == "max":
+    #             days = "Within Lifetime"
+    #         else:
+    #             days = "Past " + num_days + " Days"
+    #         # change title based on percent
+    #         if percent_change > 0:
+    #             changed = "+"
+    #         else:
+    #             changed = ""
+    #
+    #         percent_change = "{:,}".format(percent_change) # had to do it here because this converts it to a string, need it as a int above
+    #         # title = "\n" + "\n" + coin_label + "'s price " + changed + percent_change + "% within " + days
+    #         coin_label = self.change_cap(coin_name.lower())
+    #         coin_label2 = self.change_cap(coin_name2.lower())
+    #         title1 = "\n" + "\n" + coin_label + "/" + coin_label2 + " " + changed + percent_change + "% - " + days
+    #         mc = mpf.make_marketcolors(
+    #                             up='tab:blue',down='tab:red',
+    #                             wick={'up':'blue','down':'red'},
+    #                             volume='tab:green',
+    #                            )
+    #
+    #         edited_style  = mpf.make_mpf_style(gridstyle = '-', facecolor = "lightgray", gridcolor = "white", edgecolor = "black", base_mpl_style = "classic", marketcolors=mc)
+    #         mpf.plot(ohlc, type='line', title = title1, figratio = (16,10), ylabel = coin_label + "/" + coin_label2, style = edited_style, savefig = "chart.png")
+    #         return ""
+    #     else:
+    #         return "error"
