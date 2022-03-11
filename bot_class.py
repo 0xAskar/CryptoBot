@@ -226,7 +226,7 @@ class discord_bot:
                 # ax1.yaxis.set_major_formatter(tick.FormatStrFormatter('%.8f'))
                 ax1.yaxis.set_major_formatter(tick.FuncFormatter(reformat_large_tick_values))
                 fig.savefig('chart.png', bbox_inches = "tight")
-            embed = discord.Embed(title = title2, color= 0xFF8C00) #creates embed
+            embed = discord.Embed(title = title2, color= 0x92c8f5) #creates embed
             embed.set_image(url="attachment://chart.png")
             embed.set_footer(text = "Powered by cryptobot.info")
             return embed
