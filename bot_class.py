@@ -88,9 +88,9 @@ class discord_bot:
                 market_cap = round(market_cap, 2)
                 market_cap = self.check_large(market_cap)
                 if market_cap != "Not Found":
-                    mc = "$" + market_cap
+                    mc = "$" + str(market_cap)
                 else:
-                    mc = market_cap
+                    mc = str(market_cap)
                 # market_cap = "{:,}".format(market_cap)
                 coin_name = self.change_cap(coin_name)
                 # embedResponse = discord.Embed(title=coin_name + " Info", color=0xFF8C00)
@@ -186,9 +186,9 @@ class discord_bot:
             if num_days == "1":
                 days = "the past 24 hours"
             elif num_days == "MAX" or num_days == "max":
-                days = "Within Lifetime"
+                days = " Within Lifetime"
             else:
-                days = "Past " + num_days + " Days"
+                days = "Over Past " + num_days + " Days"
             # change title based on percent
             if percent_change > 0:
                 changed = "+"
@@ -198,29 +198,38 @@ class discord_bot:
             percent_change = "{:,}".format(percent_change) # had to do it here because this converts it to a string, need it as a int above
             # title = "\n" + "\n" + coin_label + "'s price " + changed + percent_change + "% within " + days
             coin_label = self.change_cap(coin_label)
-            title1 = "\n" + "\n" + coin_label + " " + changed + percent_change + "% - " + days
+            title1 = "\n" + "\n" + coin_label + " Price Change: " + changed + percent_change + "%"
+            title2 = coin_label + " Price Change " + days
             if type == 2:
                 coin_label2 = self.change_cap(coin_name2.lower())
-                title1 = "\n" + "\n" + coin_label + "/" + coin_label2 + " " + changed + percent_change + "% - " + days
+                title1 = "\n" + "\n" + coin_label + "/" + coin_label2 + " Price Change: " + changed + percent_change + "%"
+                title2 = "\n" + "\n" + coin_label + "/" + coin_label2 + " Price Change " + days
             mc = mpf.make_marketcolors(
                                 up='tab:blue',down='tab:red',
                                 wick={'up':'blue','down':'red'},
                                 volume='tab:green',
                                )
-            edited_style  = mpf.make_mpf_style(gridstyle = '-', facecolor = "lightgray", gridcolor = "white", edgecolor = "black", base_mpl_style = "classic", marketcolors=mc)
+            # edited_style  = mpf.make_mpf_style(gridstyle = '-', facecolor = "lightgray", gridcolor = "white", edgecolor = "black", base_mpl_style = "classic", marketcolors=mc)
+            edited_style  = mpf.make_mpf_style(gridcolor = "white", edgecolor = "black", base_mpf_style = "mike", marketcolors=mc)
+            wconfig = {
+                "line_width" : 2
+            }
             if type == 1:
-                fig, axlist = mpf.plot(ohlc, type='line', title = title1, figratio = (30,20), ylabel = 'Price - USD', style = edited_style, returnfig = True)
+                fig, axlist = mpf.plot(ohlc, type='line', title = title1, figratio = (30,20), ylabel = 'Price - USD', style = edited_style, update_width_config=wconfig, returnfig = True)
                 ax1 = axlist[0]
                 # ax1.yaxis.set_major_formatter(tick.FormatStrFormatter('%.8f'))
                 ax1.yaxis.set_major_formatter(tick.FuncFormatter(reformat_large_tick_values))
-                fig.savefig('chart.png')
+                fig.savefig('chart.png', bbox_inches = "tight")
             else:
-                fig, axlist = mpf.plot(ohlc, type='line', title = title1, figratio = (16,10), ylabel = coin_label + "/" + coin_label2, style = edited_style, returnfig = True)
+                fig, axlist = mpf.plot(ohlc, type='line', title = title1, figratio = (16,10), ylabel = coin_label + "/" + coin_label2, style = edited_style, update_width_config=wconfig, returnfig = True)
                 ax1 = axlist[0]
                 # ax1.yaxis.set_major_formatter(tick.FormatStrFormatter('%.8f'))
                 ax1.yaxis.set_major_formatter(tick.FuncFormatter(reformat_large_tick_values))
-                fig.savefig('chart.png')
-            return ""
+                fig.savefig('chart.png', bbox_inches = "tight")
+            embed = discord.Embed(title = title2, color= 0xFF8C00) #creates embed
+            embed.set_image(url="attachment://chart.png")
+            embed.set_footer(text = "Powered by cryptobot.info")
+            return embed
         else:
             return "error"
 
@@ -313,17 +322,21 @@ class discord_bot:
                                 wick={'up':'blue','down':'red'},
                                 volume='tab:green',
                                )
-            edited_style  = mpf.make_mpf_style(gridstyle = '-', gridcolor = "white", edgecolor = "black", base_mpl_style = "nightclouds", marketcolors=mc)
+            edited_style  = mpf.make_mpf_style(gridstyle = '-', gridcolor = "white", edgecolor = "black", base_mpl_style = "mike", marketcolors=mc)
             # edited_style  = mpf.make_mpf_style(gridstyle = '-', facecolor = "black", gridcolor = "white", edgecolor = "black", base_mpl_style = "classic", marketcolors=mc)
             if type == 1:
                 fig, axlist = mpf.plot(ohlc, type='line', title = title1, figratio = (16,10), ylabel = 'Price - USD ($)', style = "nightclouds", returnfig = True)
                 ax1 = axlist[0]
                 # ax1.yaxis.set_major_formatter(tick.FormatStrFormatter('%.8f'))
                 ax1.yaxis.set_major_formatter(tick.FuncFormatter(reformat_large_tick_values))
-                fig.savefig('ctvl.png')
+                fig.savefig('ctvl.png', bbox_inches='tight')
             else:
-                mpf.plot(ohlc, type='line', title = title1, figratio = (16,10), ylabel = coin_label + "/" + coin_label2, style = edited_style, savefig = "ctvl.png")
-            return ""
+                fig, axlist = mpf.plot(ohlc, type='line', title = title1, figratio = (16,10), ylabel = coin_label + "/" + coin_label2, style = edited_style, returnfig = True)
+                fig.savefig('ctvl.png', bbox_inches='tight')
+            embed = discord.Embed(title = title1, url = "cryptobot.info", color= 0xFF8C00) #creates embed
+            embed.set_image(url="attachment://ctvl.png")
+            embed.set_footer(text = "Powered by cryptobot.info")
+            return embed
         else:
             return "error"
 
@@ -778,7 +791,6 @@ class discord_bot:
         if num == None:
             return "None"
         if num < 999:
-            print("in here")
             return num
         if num == 0:
             return "Not Found"

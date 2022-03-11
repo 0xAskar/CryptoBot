@@ -177,7 +177,7 @@ if __name__ == "__main__":
                     user = db.find_member(bot, guild_p, askar_id)
                     suggester = db.find_member(bot, guild_p, message.author.id)
                     await user.send("suggestion" + " by " + suggester.name + ": " + command[11:])
-                    suggester = db.find_member(bot, guild_s, message.author.id)
+                    # suggester = db.find_member(bot, guild_s, message.author.id)
                     await suggester.send("```Your suggestion was sent```")
                     await message.add_reaction('\N{THUMBS UP SIGN}')
                 else:

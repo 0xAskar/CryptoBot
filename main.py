@@ -135,8 +135,8 @@ if __name__ == "__main__":
                 if len(str_divide) == 4:
                     # line_output = db.get_line_chart_two(str_divide[1], str_divide[2],str_divide[3])
                     line_output = db.get_line_chart(str_divide[1], str_divide[2], str_divide[3], 2)
-                    if line_output == "":
-                        await message.channel.send(file = discord.File('chart.png'))
+                    if line_output != "error":
+                        await message.channel.send(file = discord.File('chart.png'), embed = line_output)
                     else:
                         await message.channel.send(embed = db.error())
                 # check for default and also make default for chart coin1 coin2
@@ -144,8 +144,8 @@ if __name__ == "__main__":
                     # check to see if theyre doing a normal one coin chart or nto
                     if str_divide[2].isdigit() or str_divide[2] == "max":
                         line_output = db.get_line_chart(str_divide[1], "", str_divide[2], 1)
-                        if line_output == "":
-                            await message.channel.send(file = discord.File('chart.png'))
+                        if line_output != "error":
+                            await message.channel.send(file = discord.File('chart.png'), embed = line_output)
                         else:
                             await message.channel.send(embed = db.error())
                     # if not, then they are trying to do default two coin chart
@@ -158,8 +158,8 @@ if __name__ == "__main__":
                 # if user doesn't specify num days, default to 30
                 elif len(str_divide) == 2:
                     line_output = db.get_line_chart(str_divide[1], "", "30", 1)
-                    if line_output == "":
-                        await message.channel.send(file = discord.File('chart.png'))
+                    if line_output != "error":
+                        await message.channel.send(file = discord.File('chart.png'), embed = line_output)
                     else:
                         await message.channel.send(embed = db.error())
                 else:
