@@ -210,7 +210,7 @@ class discord_bot:
                                 volume='tab:green',
                                )
             # edited_style  = mpf.make_mpf_style(gridstyle = '-', facecolor = "lightgray", gridcolor = "white", edgecolor = "black", base_mpl_style = "classic", marketcolors=mc)
-            edited_style  = mpf.make_mpf_style(gridcolor = "white", edgecolor = "black", base_mpf_style = "mike", marketcolors=mc)
+            edited_style  = mpf.make_mpf_style(gridcolor = "white", facecolor = "181818", edgecolor = "white", base_mpf_style = "mike", marketcolors=mc)
             wconfig = {
                 "line_width" : 2
             }
