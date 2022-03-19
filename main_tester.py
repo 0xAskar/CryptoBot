@@ -146,7 +146,6 @@ if __name__ == "__main__":
         start = '2020-06-01'
         end = '2021-01-01'
         timeseries_df = get_metric_timeseries(asset_slugs=assets, asset_metric=metric, start=start, end=end)
-        print(timeseries_df)
 
 
     @bot.event
@@ -332,7 +331,9 @@ if __name__ == "__main__":
                 #     get_global_data()
                 # if user wants eth gas prices
                 if command == "gas":
-                    await message.channel.send(embed = db.gas())
+                    print(type(message.guild))
+                    if not (str(message.guild) == "r/Pennystocks" or str(message.guild) == "Playground"):
+                        await message.channel.send(embed = db.gas())
                 # if user wants to get the knowledge of shi's shitcoin
                 elif command == "fetch":
                     await message.channel.send(last_fetch_time)

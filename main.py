@@ -290,7 +290,8 @@ if __name__ == "__main__":
                 #     get_global_data()
                 # if user wants eth gas prices
                 if command == "gas":
-                    await message.channel.send(embed = db.gas())
+                    if not (str(message.guild) == "/r/Pennystocks" or str(message.guild) == "Playground"):
+                        await message.channel.send(embed = db.gas())
                 # if user wants to get the knowledge of shi's shitcoin
                 elif command == "fetch":
                     await message.channel.send(last_fetch_time)

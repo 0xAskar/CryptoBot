@@ -190,9 +190,11 @@ class discord_bot:
             else:
                 days = "Over Past " + num_days + " Days"
             # change title based on percent
+            color = "#37FFA1" # green
             if percent_change > 0:
                 changed = "+"
             else:
+                color = '#FF5252' # red
                 changed = ""
 
             percent_change = "{:,}".format(percent_change) # had to do it here because this converts it to a string, need it as a int above
@@ -215,13 +217,13 @@ class discord_bot:
                 "line_width" : 2
             }
             if type == 1:
-                fig, axlist = mpf.plot(ohlc, type='line', title = title1, figratio = (30,20), ylabel = 'Price - USD', style = edited_style, update_width_config=wconfig, returnfig = True)
+                fig, axlist = mpf.plot(ohlc, type='line', title = title1, figratio = (30,20), ylabel = 'Price - USD', style = edited_style, update_width_config=wconfig, linecolor = color, returnfig = True)
                 ax1 = axlist[0]
                 # ax1.yaxis.set_major_formatter(tick.FormatStrFormatter('%.8f'))
                 ax1.yaxis.set_major_formatter(tick.FuncFormatter(reformat_large_tick_values))
                 fig.savefig('chart.png', bbox_inches = "tight")
             else:
-                fig, axlist = mpf.plot(ohlc, type='line', title = title1, figratio = (16,10), ylabel = coin_label + "/" + coin_label2, style = edited_style, update_width_config=wconfig, returnfig = True)
+                fig, axlist = mpf.plot(ohlc, type='line', title = title1, figratio = (16,10), ylabel = coin_label + "/" + coin_label2, style = edited_style, update_width_config=wconfig, linecolor = color, returnfig = True)
                 ax1 = axlist[0]
                 # ax1.yaxis.set_major_formatter(tick.FormatStrFormatter('%.8f'))
                 ax1.yaxis.set_major_formatter(tick.FuncFormatter(reformat_large_tick_values))
