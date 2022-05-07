@@ -21,7 +21,7 @@ from time import sleep
 from selenium.webdriver.chrome.options import Options
 from PIL import Image
 import copy
-import seaborn as sbs
+# import seaborn as sbs
 import time
 
 class discord_bot:
