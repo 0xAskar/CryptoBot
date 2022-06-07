@@ -21,6 +21,8 @@ To learn more about the bot once it's added, use !crypto-help.
 
 Email mattaska@umich.edu for use or any feedback.
 
+Update: The bot has been updated to slash (/) commands. This requires a minimum python requirement and other changes. If there are any questions, please reach out.
+
 Add to your discord server using the link below:
-https://discord.com/api/oauth2/authorize?client_id=769265839584051200&permissions=1812987072&scope=bot
+https://discord.com/api/oauth2/authorize?client_id=769265839584051200&permissions=416008371392&scope=bot%20applications.commands
 Thanks for checking it out and thanks to CoinGecko for the free API!
