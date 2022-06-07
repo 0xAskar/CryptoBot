@@ -161,6 +161,8 @@ if __name__ == "__main__":
                 if len(str_divide) == 4:
                     # line_output = db.get_line_chart_two(str_divide[1], str_divide[2],str_divide[3])
                     line_output = db.get_line_chart(str_divide[1], str_divide[2], str_divide[3], 2)
+                    warning = suggestSlash("`/chart2 [coin] [coin_2] [num_days]`")
+                    await message.channel.send(embed = warning)
                     if line_output != "error":
                         await message.channel.send(file = discord.File('chart.png'), embed = line_output)
                         correct_check = True
@@ -171,6 +173,8 @@ if __name__ == "__main__":
                     # check to see if theyre doing a normal one coin chart or nto
                     if str_divide[2].isdigit() or str_divide[2] == "max":
                         line_output = db.get_line_chart(str_divide[1], "", str_divide[2], 1)
+                        warning = suggestSlash("`/chart [coin] [num_days]`")
+                        await message.channel.send(embed = warning)
                         if line_output != "error":
                             await message.channel.send(file = discord.File('chart.png'), embed = line_output)
                             correct_check = True
@@ -279,6 +283,8 @@ if __name__ == "__main__":
                     await message.channel.send(embed = db.error())
             elif str_divide[0] == "supply":
                 supply_output = db.get_supply(str_divide[1])
+                warning = suggestSlash("`/supply [coin]`")
+                await message.channel.send(embed = warning)
                 correct_check = True
                 if supply_output != "e":
                     await message.channel.send(embed = supply_output)
@@ -296,6 +302,8 @@ if __name__ == "__main__":
             elif str_divide[0] == "ath" or str_divide[0] == "atl" or str_divide[0] == "range":
                 if str_divide[0] == "ath":
                     output = db.get_all_time("H", str_divide[1])
+                    warning = suggestSlash("`/ath [coin]`")
+                    await message.channel.send(embed = warning)
                     correct_check = True
                     if output != "e":
                         await message.channel.send(embed = output)
@@ -303,6 +311,8 @@ if __name__ == "__main__":
                         await message.channel.send(embed = db.error())
                 elif str_divide[0] == "atl":
                     output = db.get_all_time("L", str_divide[1])
+                    warning = suggestSlash("`/atl [coin]`")
+                    await message.channel.send(embed = warning)
                     correct_check = True
                     if output != "e":
                         await message.channel.send(embed = output)
@@ -310,16 +320,22 @@ if __name__ == "__main__":
                         await message.channel.send(embed = db.error())
                 elif str_divide[0] == "range":
                     output = db.get_all_time("R", str_divide[1])
+                    warning = suggestSlash("`/range [coin]`")
+                    await message.channel.send(embed = warning)
                     correct_check = True
                     if output != "e":
                         await message.channel.send(embed = output)
                     else:
                         await message.channel.send(embed = db.error())
             elif str_divide[0] == "tvl-ratio":
+                warning = suggestSlash("`/tvl-ratio [coin]`")
+                await message.channel.send(embed = warning)
                 output = db.get_mcap_to_tvl_ratio(str_divide[1])
                 correct_check = True
                 await message.channel.send(embed = output)
             elif str_divide[0] == "tvl":
+                warning = suggestSlash("`/tvl [coin]`")
+                await message.channel.send(embed = warning)
                 output = db.get_tvl(str_divide[1])
                 correct_check = True
                 await message.channel.send(embed = output)
@@ -408,10 +424,6 @@ if __name__ == "__main__":
                             print("Updated guild: ", guild)
                         except Exception as err:
                             print("Could not add guild: ", guild)
-                elif str_divide[0] == "heap":
-                    # result = db.get_heap(theHeap)
-                    print(theHeap.heap())
-                    await message.channel.send(theHeap.heap())
                 else:
                     result = db.get_coin_price(command)
                     if result != "":
