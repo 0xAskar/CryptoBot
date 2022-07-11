@@ -83,6 +83,15 @@ class all_commands(commands.Cog):
         response = self.db.get_all_time("R", coin)
         await interaction.response.send_message(embed = response, ephemeral=False)
 
+        
+    # get the range of a token
+    @app_commands.command(name="coin-image")
+    async def get_image(self, interaction: discord.Interaction, coin: str) -> None:
+        """ Gets the image of a token"""
+        response = self.db.get_image(coin)
+        embedResponse = discord.Embed(title = response, color=0x4E6F7B) #creates embed
+        embedResponse.set_image(url="attachment://image.png")
+        await interaction.response.send_message(file = discord.File("image.png"), embed = embedResponse, ephemeral=False)
     
     # get a list of coins
     # @app_commands.command(name="list")

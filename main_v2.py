@@ -13,7 +13,6 @@ import sys
 import urllib.request
 import requests
 from urllib.request import Request, urlopen
-import praw
 import json
 import requests
 from requests.adapters import HTTPAdapter
@@ -145,17 +144,17 @@ if __name__ == "__main__":
                 await message.channel.send(embed = embedResponse);
                 correct_check = True
             # if user wants to send a suggestion
-            elif str_divide[0] == "suggestion" or str_divide[0] == "suggestions":
-                if len(str_divide) > 1:
-                    user = db.find_member(bot, guild_p, askar_id)
-                    suggester = db.find_member(bot, guild_p, message.author.id)
-                    await user.send("suggestion" + " by " + suggester.name + ": " + command[11:])
-                    suggester = db.find_member(bot, guild_p, message.author.id)
-                    await suggester.send("```Your suggestion was sent```")
-                    await message.add_reaction('\N{THUMBS UP SIGN}')
-                    correct_check = True
-                else:
-                    await message.channel.send("```Invalid Suggestion: There was no suggestion```")
+            # elif str_divide[0] == "suggestion" or str_divide[0] == "suggestions":
+            #     if len(str_divide) > 1:
+            #         user = db.find_member(bot, guild_p, askar_id)
+            #         suggester = db.find_member(bot, guild_p, message.author.id)
+            #         await user.send("suggestion" + " by " + suggester.name + ": " + command[11:])
+            #         suggester = db.find_member(bot, guild_p, message.author.id)
+            #         await suggester.send("```Your suggestion was sent```")
+            #         await message.add_reaction('\N{THUMBS UP SIGN}')
+            #         correct_check = True
+            #     else:
+            #         await message.channel.send("```Invalid Suggestion: There was no suggestion```")
             # if user requests a line chart of a coin
             elif str_divide[0] == "chart":
                 if len(str_divide) == 4:
@@ -290,43 +289,43 @@ if __name__ == "__main__":
                     await message.channel.send(embed = supply_output)
                 else:
                     await message.channel.send(embed = db.error())
-            elif str_divide[0] == "image":
-                image_output = db.get_image(str_divide[1])
-                correct_check = True
-                if image_output != "e":
-                    embedResponse = discord.Embed(title = image_output, color=0x4E6F7B) #creates embed
-                    embedResponse.set_image(url="attachment://image.png")
-                    await message.channel.send(file = discord.File("image.png"), embed = embedResponse)
-                else:
-                    await message.channel.send(embed = db.error())
-            elif str_divide[0] == "ath" or str_divide[0] == "atl" or str_divide[0] == "range":
-                if str_divide[0] == "ath":
-                    output = db.get_all_time("H", str_divide[1])
-                    warning = suggestSlash("`/ath [coin]`")
-                    await message.channel.send(embed = warning)
-                    correct_check = True
-                    if output != "e":
-                        await message.channel.send(embed = output)
-                    else:
-                        await message.channel.send(embed = db.error())
-                elif str_divide[0] == "atl":
-                    output = db.get_all_time("L", str_divide[1])
-                    warning = suggestSlash("`/atl [coin]`")
-                    await message.channel.send(embed = warning)
-                    correct_check = True
-                    if output != "e":
-                        await message.channel.send(embed = output)
-                    else:
-                        await message.channel.send(embed = db.error())
-                elif str_divide[0] == "range":
-                    output = db.get_all_time("R", str_divide[1])
-                    warning = suggestSlash("`/range [coin]`")
-                    await message.channel.send(embed = warning)
-                    correct_check = True
-                    if output != "e":
-                        await message.channel.send(embed = output)
-                    else:
-                        await message.channel.send(embed = db.error())
+            # elif str_divide[0] == "image":
+            #     image_output = db.get_image(str_divide[1])
+            #     correct_check = True
+            #     if image_output != "e":
+            #         embedResponse = discord.Embed(title = image_output, color=0x4E6F7B) #creates embed
+            #         embedResponse.set_image(url="attachment://image.png")
+            #         await message.channel.send(file = discord.File("image.png"), embed = embedResponse)
+            #     else:
+            #         await message.channel.send(embed = db.error())
+            # elif str_divide[0] == "ath" or str_divide[0] == "atl" or str_divide[0] == "range":
+            #     if str_divide[0] == "ath":
+            #         output = db.get_all_time("H", str_divide[1])
+            #         warning = suggestSlash("`/ath [coin]`")
+            #         await message.channel.send(embed = warning)
+            #         correct_check = True
+            #         if output != "e":
+            #             await message.channel.send(embed = output)
+            #         else:
+            #             await message.channel.send(embed = db.error())
+            #     elif str_divide[0] == "atl":
+            #         output = db.get_all_time("L", str_divide[1])
+            #         warning = suggestSlash("`/atl [coin]`")
+            #         await message.channel.send(embed = warning)
+            #         correct_check = True
+            #         if output != "e":
+            #             await message.channel.send(embed = output)
+            #         else:
+            #             await message.channel.send(embed = db.error())
+            #     elif str_divide[0] == "range":
+            #         output = db.get_all_time("R", str_divide[1])
+            #         warning = suggestSlash("`/range [coin]`")
+            #         await message.channel.send(embed = warning)
+            #         correct_check = True
+            #         if output != "e":
+            #             await message.channel.send(embed = output)
+            #         else:
+            #             await message.channel.send(embed = db.error())
             elif str_divide[0] == "tvl-ratio":
                 warning = suggestSlash("`/tvl-ratio [coin]`")
                 await message.channel.send(embed = warning)
@@ -411,9 +410,9 @@ if __name__ == "__main__":
                     embedResponse.set_image(url="attachment://picycle.png")
                     await message.channel.send(file = discord.File("picycle.png"), embed = embedResponse)
                 # if user wants info about any coin
-                elif str_divide[0] == "servers":
-                    result = db.get_servers(bot)
-                    await message.channel.send(result)
+                # elif str_divide[0] == "servers":
+                #     result = db.get_servers(bot)
+                #     await message.channel.send(result)
                 elif str_divide[0] == "crypto_some_trees":
                     print("ran command")
                     test_guilds= [769635647782256690, 297939923741310979]
