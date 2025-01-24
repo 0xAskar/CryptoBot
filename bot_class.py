@@ -20,6 +20,8 @@ from selenium import webdriver
 from time import sleep
 from selenium.webdriver.chrome.options import Options
 from PIL import Image
+from pandas import Timestamp
+from pytvlwcharts import *
 import copy
 # import seaborn as sbs
 import time
@@ -105,6 +107,27 @@ class discord_bot:
         return ""
 
     # retreive data and create candle chart of any coin
+
+    def get_new_line_chart(self, coin_name, coin_name2, num_days, type):
+        #all code that includes type 2 is for chart one currency against another
+
+        #coin label work
+        coin_label = ""
+        coin_name = coin_name.lower()
+        coin_label = self.check_coin(coin_name)
+        #coin label 2 work
+        if type == 2:
+            coin_label2 = ""
+            coin_name2 = coin_name2.lower()
+            coin_label2 = self.check_coin(coin_name2)
+
+        #checking if num days is valid
+        temp = str(num_days)
+        if not temp.isdigit():
+            temp = temp.lower()
+            if temp != "max":
+                return False
+
     def get_line_chart(self, coin_name, coin_name2, num_days, type):
         #all code that includes type 2 is for chart one currency against another
 

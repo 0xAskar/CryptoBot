@@ -190,8 +190,8 @@ if __name__ == "__main__":
                 # if user doesn't specify num days, default to 30
                 elif len(str_divide) == 2:
                     line_output = db.get_line_chart(str_divide[1], "", "30", 1)
-                    warning = suggestSlash("`/chart [coin] [num_days]`")
-                    await message.channel.send(embed = warning)
+                    # warning = suggestSlash("`/chart [coin] [num_days]`")
+                    # await message.channel.send(embed = warning)
                     if line_output != "error":
                         await message.channel.send(file = discord.File('chart.png'), embed = line_output)
                         correct_check = True
@@ -289,43 +289,6 @@ if __name__ == "__main__":
                     await message.channel.send(embed = supply_output)
                 else:
                     await message.channel.send(embed = db.error())
-            # elif str_divide[0] == "image":
-            #     image_output = db.get_image(str_divide[1])
-            #     correct_check = True
-            #     if image_output != "e":
-            #         embedResponse = discord.Embed(title = image_output, color=0x4E6F7B) #creates embed
-            #         embedResponse.set_image(url="attachment://image.png")
-            #         await message.channel.send(file = discord.File("image.png"), embed = embedResponse)
-            #     else:
-            #         await message.channel.send(embed = db.error())
-            # elif str_divide[0] == "ath" or str_divide[0] == "atl" or str_divide[0] == "range":
-            #     if str_divide[0] == "ath":
-            #         output = db.get_all_time("H", str_divide[1])
-            #         warning = suggestSlash("`/ath [coin]`")
-            #         await message.channel.send(embed = warning)
-            #         correct_check = True
-            #         if output != "e":
-            #             await message.channel.send(embed = output)
-            #         else:
-            #             await message.channel.send(embed = db.error())
-            #     elif str_divide[0] == "atl":
-            #         output = db.get_all_time("L", str_divide[1])
-            #         warning = suggestSlash("`/atl [coin]`")
-            #         await message.channel.send(embed = warning)
-            #         correct_check = True
-            #         if output != "e":
-            #             await message.channel.send(embed = output)
-            #         else:
-            #             await message.channel.send(embed = db.error())
-            #     elif str_divide[0] == "range":
-            #         output = db.get_all_time("R", str_divide[1])
-            #         warning = suggestSlash("`/range [coin]`")
-            #         await message.channel.send(embed = warning)
-            #         correct_check = True
-            #         if output != "e":
-            #             await message.channel.send(embed = output)
-            #         else:
-            #             await message.channel.send(embed = db.error())
             elif str_divide[0] == "tvl-ratio":
                 warning = suggestSlash("`/tvl-ratio [coin]`")
                 await message.channel.send(embed = warning)
