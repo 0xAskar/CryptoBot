@@ -1,0 +1,6 @@
+bot_token_real="NzY5MjY1ODM5NTg0MDUxMjAw.X5MgpA.3SGn46_w6bng50Hqe2lpmPOgIyo"
+bot_id_real=769265839584051200
+bot_token_tester="Nzc4ODMzNDczOTEzMjI1MjE2.X7XvMg.SoTJxD5V48HcUbj4yu6iaRtnC_Y"
+bot_id_tester=778833473913225216
+etherscan_api_key = "Y9KQMISGCXVNMJJXA2TBFMENF1JM2D4HAP"
+defipulse_api_key = "0e954d09b1fc225ea1558b4e85efead9fb9972b8cca208e3371dfc157bda"
