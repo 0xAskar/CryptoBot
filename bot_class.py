@@ -21,7 +21,6 @@ from time import sleep
 from selenium.webdriver.chrome.options import Options
 from PIL import Image
 from pandas import Timestamp
-from pytvlwcharts import *
 import copy
 # import seaborn as sbs
 import time

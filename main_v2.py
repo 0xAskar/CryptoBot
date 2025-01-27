@@ -5,7 +5,6 @@ from bot_class import discord_bot
 from dotenv import load_dotenv
 import asyncio
 import discord
-from discord import app_commands
 import datetime
 from discord.ext import tasks, commands
 from discord.ext.tasks import loop
@@ -18,12 +17,10 @@ import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 import bot_ids
-import crypto_commands
-
 
 if __name__ == "__main__":
     # main variables
-    bot_token = bot_ids.bot_token_real
+    bot_token = bot_ids.bot_token_real_first_half + bot_ids.bot_token_real_second_half
     bot_id = bot_ids.bot_id_real
     askar_id = 372010870756081675
     bot_name = ""
@@ -399,5 +396,4 @@ if __name__ == "__main__":
                 # warning = suggestSlash()
                 # await message.channel.send(embed = warning)
             return
-
     bot_class.run(bot_token)
