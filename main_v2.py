@@ -72,6 +72,7 @@ if __name__ == "__main__":
         @tasks.loop(seconds = 60)
         async def background_task(self):
             await self.wait_until_ready()
+            print("running background task" + str(datetime.datetime.now()))
             bot_list = []
             global count
             try:
@@ -80,6 +81,7 @@ if __name__ == "__main__":
                 # however, because we are restricted to changing usernames often
                 # we need to change nicknames which are a guild-by-guild basis
                 btc_status = db.btc_status()
+                print("btc status: " + btc_status + " at " + str(datetime.datetime.now()))
                 for guild in self.guilds:
                     await guild.me.edit(nick = btc_status)
                 count += 1

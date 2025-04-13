@@ -20,9 +20,7 @@ property_id = "423666009"
 request_api = RunReportRequest(
     property=f"properties/{property_id}",
     dimensions=[
-        Dimension(name="date"),
-        Dimension(name="hour"),
-        Dimension(name="minute"),
+        Dimension(name="dateHourMinute"),
         Dimension(name="eventName"),
         Dimension(name="pagePath"),
         Dimension(name="fullPageUrl"),
@@ -43,20 +41,16 @@ request_api = RunReportRequest(
 # Execute the request
 response = client.run_report(request_api)
 
-# Sort response rows by date and time
+# Sort response rows by dateHourMinute
 sorted_rows = sorted(response.rows, 
-                    key=lambda row: (
-                        row.dimension_values[0].value,  # date
-                        int(row.dimension_values[1].value),  # hour
-                        int(row.dimension_values[2].value)   # minute
-                    ))
+                    key=lambda row: row.dimension_values[0].value)  # Just sort by dateHourMinute
 
 # Print results
 for i, row in enumerate(sorted_rows, 1):
     print(f"#####")
     print(f"link index: {i}")
-    print(f"when: {row.dimension_values[1].value}:{row.dimension_values[2].value} {row.dimension_values[0].value}")
-    print(f"full url: {row.dimension_values[5].value}")
-    print(f"country: {row.dimension_values[8].value}")
+    print(f"when: {row.dimension_values[0].value}")
+    print(f"full url: {row.dimension_values[3].value}")
+    print(f"country: {row.dimension_values[6].value}")
     print(f"#####\n")
 print(f'TOTAL ROWS: {len(response.rows)}')
