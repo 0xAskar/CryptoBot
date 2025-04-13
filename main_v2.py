@@ -37,7 +37,7 @@ if __name__ == "__main__":
     # load up the coingecko, etherscan, and discord api's
     load_dotenv()
     db = discord_bot()
-    print(db.cg.ping())
+    # print(db.cg.ping())
 
     def suggestSlash(slash_command):
         embedResponse = discord.Embed(color = 0xF93A2F)
@@ -77,7 +77,9 @@ if __name__ == "__main__":
             global count
             try:
                 # change presence globally
-                await self.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= db.eth_status()))
+                eth_status = db.eth_status()
+                print("eth status: " + eth_status + " at " + str(datetime.datetime.now()))
+                await self.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= eth_status))
                 # however, because we are restricted to changing usernames often
                 # we need to change nicknames which are a guild-by-guild basis
                 btc_status = db.btc_status()

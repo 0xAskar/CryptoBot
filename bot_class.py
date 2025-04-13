@@ -39,31 +39,34 @@ class discord_bot:
     the_coin_list = copy.deepcopy(cg.get_coins_list())
 
     # functions to gather btc, eth, and any coins price
+    def get_crypto_price(self, crypto_id):
+        try:
+            url = f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={crypto_id}&x_cg_demo_api_key=CG-hqqTQq9mSeGc4f9hy2qS5ra9"
+            response = requests.get(url)
+            data = response.json()
+            
+            if data and len(data) > 0:
+                price = data[0]['current_price']
+                if price is not None:
+                    price = round(price, 2)
+                    price = "{:,}".format(price)
+                    return price
+            return None
+        except Exception as e:
+            print(f"Error fetching {crypto_id} price: {str(e)}")
+            return None
+
     def btc_status(self):
-        price_data = self.cg.get_price(ids= 'bitcoin', vs_currencies='usd')
-        price = price_data['bitcoin']['usd']
-        if price != None:
-            price = round(price,2)
-            price = "{:,}".format(price)
-            response = "Bitcoin - $" + str(price)
-            # logging.info("Logged BTC price at " + str(datetime.now()))
-            return response
-        else:
-            # logging.warning("Error from CoinGecko at: " + str(datetime.now()))
-            return "CoinGecko Error"
+        price = self.get_crypto_price('bitcoin')
+        if price is not None:
+            return f"Bitcoin - ${price}"
+        return "CoinGecko Error"
 
     def eth_status(self):
-        price_data = self.cg.get_price(ids= 'Ethereum', vs_currencies='usd')
-        price = price_data['ethereum']['usd']
-        if price != None:
-            price = round(price,2)
-            price = "{:,}".format(price)
-            response = "Ethereum: $" + str(price)
-            # logging.info("Logged ETH price at " + str(datetime.now()))
-            return response
-        else:
-            # logging.warning("Error from CoinGecko at: " + str(datetime.now()))
-            return "Coingecko Errors"
+        price = self.get_crypto_price('ethereum')
+        if price is not None:
+            return f"Ethereum: ${price}"
+        return "CoinGecko Error"
 
     def get_coin_price(self, coin_name):
         coin_label = ""
