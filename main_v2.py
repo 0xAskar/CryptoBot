@@ -97,6 +97,7 @@ if __name__ == "__main__":
 
     # create instance of bot class
     bot_class = MainBot()
+    print(bot_class)
 
     # do this to update all the guilds
     @bot_class.command()
@@ -398,4 +399,5 @@ if __name__ == "__main__":
                 # warning = suggestSlash()
                 # await message.channel.send(embed = warning)
             return
+    print("running bot" + str(datetime.datetime.now()) + bot_token)
     bot_class.run(bot_token)
