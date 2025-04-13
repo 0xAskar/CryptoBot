@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 import asyncio
 import discord
 import datetime
+import logging
 from discord.ext import tasks, commands
 from discord.ext.tasks import loop
 import sys
@@ -17,6 +18,14 @@ import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 import bot_ids
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
     # main variables
@@ -72,39 +81,38 @@ if __name__ == "__main__":
         @tasks.loop(seconds = 60)
         async def background_task(self):
             await self.wait_until_ready()
-            print("running background task" + str(datetime.datetime.now()))
+            logger.info(f"Running background task at {datetime.datetime.now()}")
             bot_list = []
             global count
             try:
                 # change presence globally
                 eth_status = db.eth_status()
-                print("eth status: " + eth_status + " at " + str(datetime.datetime.now()))
+                logger.info(f"eth status: {eth_status} at {datetime.datetime.now()}")
                 await self.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= eth_status))
                 # however, because we are restricted to changing usernames often
                 # we need to change nicknames which are a guild-by-guild basis
                 btc_status = db.btc_status()
-                print("btc status: " + btc_status + " at " + str(datetime.datetime.now()))
+                logger.info(f"btc status: {btc_status} at {datetime.datetime.now()}")
                 for guild in self.guilds:
                     await guild.me.edit(nick = btc_status)
                 count += 1
                 global last_fetch_time
                 last_fetch_time = datetime.datetime.now()
             except Exception as err:
-                print(err)
-                print("Unsuspected error")
-                print(datetime.datetime.now())
+                logger.error(f"Error in background task: {err}")
+                logger.error(f"Unexpected error at {datetime.datetime.now()}")
 
         async def on_ready(self):
-            print("Ready!")
+            logger.info("Bot is ready!")
 
     # create instance of bot class
     bot_class = MainBot()
-    print(bot_class)
+    logger.info(f"Bot instance created: {bot_class}")
 
     # do this to update all the guilds
     @bot_class.command()
     async def all_tree(ctx):
-        print("ran command")
+        logger.info("Running all_tree command")
         for guild in bot_class.guilds:
             bot_class.tree.copy_global_to(guild = discord.Object(id = guild.id))
             await bot_class.tree.sync(guild = discord.Object(id = guild.id))
