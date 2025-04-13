@@ -65,69 +65,65 @@ if __name__ == "__main__":
         return embedResponse
 
     class MainBot(commands.Bot):
-        # initialize the bot
         def __init__(self):
             intents = discord.Intents.all()
             super().__init__(command_prefix='?', intents = intents, application_id = app_id)
             self.initial_extensions = [
                 'crypto_commands'
             ]
+            self.bg_task = None
             
-        # add the background task
-        async def setup_hook(self):
-            try:
-                logger.info("Starting setup hook")
-                self.background_task.start()
-                logger.info("Background task started")
-                for ext in self.initial_extensions:
-                    logger.info(f"Loading extension: {ext}")
-                    await self.load_extension(ext)
-                logger.info("Setup hook completed successfully")
-            except Exception as e:
-                logger.error(f"Error in setup_hook: {str(e)}")
-                raise  # Re-raise the exception to ensure the bot doesn't silently fail
-                
-        # create background loop to update bot information
-        @tasks.loop(seconds = 60)
-        async def background_task(self):
-            try:
-                await self.wait_until_ready()
-                logger.info(f"Running background task at {datetime.datetime.now()}")
-                bot_list = []
-                global count
-                
-                # change presence globally
-                eth_status = db.eth_status()
-                logger.info(f"eth status: {eth_status} at {datetime.datetime.now()}")
-                await self.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= eth_status))
-                
-                # however, because we are restricted to changing usernames often
-                # we need to change nicknames which are a guild-by-guild basis
-                btc_status = db.btc_status()
-                logger.info(f"btc status: {btc_status} at {datetime.datetime.now()}")
-                for guild in self.guilds:
-                    try:
-                        await guild.me.edit(nick = btc_status)
-                    except Exception as guild_err:
-                        logger.error(f"Error updating nickname for guild {guild.id}: {str(guild_err)}")
-                        
-                count += 1
-                global last_fetch_time
-                last_fetch_time = datetime.datetime.now()
-                logger.info("Background task completed successfully")
-            except Exception as err:
-                logger.error(f"Error in background task: {str(err)}")
-                logger.error(f"Error type: {type(err)}")
-                logger.error(f"Full error details: {err.__dict__}")
-                
-        @background_task.before_loop
-        async def before_background_task(self):
-            logger.info("Waiting for bot to be ready before starting background task")
-            await self.wait_until_ready()
-            logger.info("Bot is ready, background task can start")
-
         async def on_ready(self):
             logger.info("Bot is ready!")
+            # Load extensions if not already loaded
+            try:
+                for ext in self.initial_extensions:
+                    if ext not in self.extensions:
+                        logger.info(f"Loading extension: {ext}")
+                        await self.load_extension(ext)
+            except Exception as e:
+                logger.error(f"Failed to load extensions: {str(e)}")
+                
+            # Start background loop when bot is ready
+            if not self.bg_task:
+                self.bg_task = asyncio.create_task(self.background_loop())
+                logger.info("Background loop task created")
+
+        async def background_loop(self):
+            logger.info("Background loop started")
+            while True:
+                try:
+                    logger.info(f"Running background update at {datetime.datetime.now()}")
+                    
+                    # Try to update eth status
+                    try:
+                        eth_status = db.eth_status()
+                        logger.info(f"eth status: {eth_status} at {datetime.datetime.now()}")
+                        await self.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=eth_status))
+                    except Exception as eth_err:
+                        logger.error(f"Failed to update ETH status: {str(eth_err)}")
+
+                    # Try to update btc status for each guild
+                    try:
+                        btc_status = db.btc_status()
+                        logger.info(f"btc status: {btc_status} at {datetime.datetime.now()}")
+                        for guild in self.guilds:
+                            try:
+                                await guild.me.edit(nick=btc_status)
+                            except Exception as guild_err:
+                                logger.error(f"Failed to update nickname for guild {guild.id}: {str(guild_err)}")
+                    except Exception as btc_err:
+                        logger.error(f"Failed to update BTC status: {str(btc_err)}")
+
+                    global last_fetch_time
+                    last_fetch_time = datetime.datetime.now()
+                    logger.info("Background update completed successfully")
+                    
+                except Exception as e:
+                    logger.error(f"Error in background loop: {str(e)}")
+                
+                # Wait 60 seconds before next update
+                await asyncio.sleep(60)
 
     # create instance of bot class
     bot_class = MainBot()
