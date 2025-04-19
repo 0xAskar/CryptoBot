@@ -41,7 +41,7 @@ class discord_bot:
     # functions to gather btc, eth, and any coins price
     def get_crypto_price(self, crypto_id):
         try:
-            url = f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={crypto_id}&x_cg_demo_api_key=CG-hqqTQq9mSeGc4f9hy2qS5ra9"
+            url = f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={crypto_id}&x_cg_demo_api_key=CG-oGkFUu3WJx9geBKMN3Uekwbt"
             response = requests.get(url)
             data = response.json()
             

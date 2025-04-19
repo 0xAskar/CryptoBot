@@ -123,7 +123,7 @@ if __name__ == "__main__":
                     logger.error(f"Error in background loop: {str(e)}")
                 
                 # Wait 60 seconds before next update
-                await asyncio.sleep(60)
+                await asyncio.sleep(60*10)
 
     # create instance of bot class
     bot_class = MainBot()
